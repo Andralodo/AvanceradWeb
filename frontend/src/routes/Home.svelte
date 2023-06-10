@@ -10,7 +10,6 @@
 {#each posts as post}
     <Link to="post/{post.id}">    
         <PostBlock 
-            id={post.id} 
             author={accounts.find(account => post.authorId === account.id).name}
             title={post.title} 
             content={post.content}

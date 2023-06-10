@@ -1,25 +1,17 @@
 <script>
-    export let id
     export let author
     export let title
     export let content
-
-    import { createEventDispatcher } from 'svelte';
-	const dispatch = createEventDispatcher();
-
-    function postClick() {
-		dispatch('click', 'postblock')
-	}
 </script>
 
-<button id="postblock" on:click>
+<button id="postBlock" on:click>
     <p>Posted by: {author}</p>
     <h3>{title}</h3>
     <p>{content}</p>
 </button>
 
 <style>
-    #postblock {
+    #postBlock {
         position: relative;
         width: 1280px;
         height: 250px;
@@ -30,7 +22,7 @@
         transition: all .4s ease;
     }
 
-    #postblock:hover {
+    #postBlock:hover {
     border-radius: 0% 0% 50% 50% / 0% 0% 5% 5% ;
     box-shadow: 10px 10px rgba(0,0,0,.25);
     }
