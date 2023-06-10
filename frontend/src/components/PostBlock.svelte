@@ -2,14 +2,21 @@
     export let id
     export let author
     export let title
-    export let description
+    export let content
+
+    import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
+
+    function postClick() {
+		dispatch('click', 'postblock')
+	}
 </script>
 
-<div id="postblock">
+<button id="postblock" on:click>
     <p>Posted by: {author}</p>
     <h3>{title}</h3>
-    <p>{description}</p>
-</div>
+    <p>{content}</p>
+</button>
 
 <style>
     #postblock {
