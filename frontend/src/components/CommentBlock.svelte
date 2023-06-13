@@ -3,20 +3,20 @@
     export let author
     export let comment
 
-    import Modal from './Modal.svelte';
-    let showModal = false;
+    import CommentModal from './CommentModal.svelte';
+    let showCommentModal = false;
     
 </script>
 
-<button id="commentBlock" on:click={() => (showModal = true)}>
+<button id="commentBlock" on:click={() => (showCommentModal = true)}>
     <p>Posted by: {author}</p>
     <p>{comment}</p>
 </button>
 
-<Modal bind:showModal>
+<CommentModal bind:showCommentModal>
 	<p>Posted by: {author}</p>
     <p>{comment}</p>
-</Modal>
+</CommentModal>
 
 <style>
 

@@ -4,7 +4,6 @@
   import Login from "./routes/Login.svelte";
   import Home from "./routes/Home.svelte";
   import Post from "./routes/Post.svelte";
-  import PostCreate from "./routes/PostCreate.svelte";
 
   // Used for SSR. A falsy value is ignored by the Router.
   export let url = "";
@@ -21,7 +20,6 @@
         <Route path="login" component={Login} />
         <Route path="/" component={Home} />
         <Route path="post/:id" component={Post} />
-        <Route path="post/create" component={PostCreate} />
     </div>
   </Router>
 </main>
