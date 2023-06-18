@@ -3,29 +3,26 @@
   import NavLink from "./components/NavLink.svelte";
   import Login from "./routes/Login.svelte";
   import Home from "./routes/Home.svelte";
+  import Post from "./routes/Post.svelte";
+  import Profile from "./routes/Profile.svelte";
 
   // Used for SSR. A falsy value is ignored by the Router.
   export let url = "";
 </script>
 
-<Router {url}>
-  <nav>
-      <NavLink to="/">Home</NavLink>
-      <NavLink to="login">Login</NavLink>
-  </nav>
-  <div>
-      <Route path="login" component={Login} />
-      <Route path="/" component={Home} />
-  </div>
-</Router>
-
-
-
 <main>
-
-
+  <h1> Forum </h1>
+  <Router {url}>
+    <nav id="navbar">
+        <NavLink to="/">Home</NavLink>
+        <NavLink to="login">Login</NavLink>
+        <NavLink to="profile">Profile</NavLink>
+    </nav>
+    <div>
+        <Route path="login" component={Login} />
+        <Route path="/" component={Home} />
+        <Route path="post/:id" component={Post} />
+        <Route path="profile" component={Profile}/>
+    </div>
+  </Router>
 </main>
-
-<style>
- 
-</style>

@@ -1,0 +1,103 @@
+<script>
+	export let showEditPostModal; // boolean
+	export let post
+
+	let dialog; // HTMLDialogElement
+
+	$: if (dialog && showEditPostModal) dialog.showModal();
+</script>
+
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<dialog
+	bind:this={dialog}
+	on:close={() => (showEditPostModal = false)}
+	on:click|self={() => dialog.close()}
+>
+	<div on:click|stopPropagation>
+		<slot name="header" />
+		<hr />
+		<div id="addPostContainer">
+            <form action="">
+                <div id="postTitleInModalContainer">
+                    <label for="titleInput">Title</label>
+                    <input name="titleInput" value={post.title} type="text">
+                </div>
+            
+                <div id="postContentInModalContainer">
+                    <label for="contentInput">Content</label>
+                    <textarea name="contentInput" value={post.content} cols="30" rows="10"></textarea>
+                </div>
+                <div id="sumbitPostContainer">
+                    <button type="submit">Post</button>
+                </div>
+            </form>
+        </div>
+		<hr />
+		<!-- svelte-ignore a11y-autofocus -->
+		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
+	</div>
+</dialog>
+
+<style>
+	dialog {
+		max-width: 32em;
+		border-radius: 0.2em;
+		border: none;
+		padding: 0;
+	}
+	dialog::backdrop {
+		background: rgba(0, 0, 0, 0.3);
+	}
+	dialog > div {
+		padding: 1em;
+	}
+	dialog[open] {
+		animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+	@keyframes zoom {
+		from {
+			transform: scale(0.95);
+		}
+		to {
+			transform: scale(1);
+		}
+	}
+	dialog[open]::backdrop {
+		animation: fade 0.2s ease-out;
+	}
+	@keyframes fade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	/* button {
+		display: block;
+	} */
+
+	#postTitleInModalContainer{
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    #postContentInModalContainer{
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    #sumbitPostContainer{
+        margin-top: 0.5rem;
+        /* text-align: left; */
+    }
+    
+
+    #addPostContainer{
+        display: flex;
+        flex-direction: column;
+    }
+</style>
