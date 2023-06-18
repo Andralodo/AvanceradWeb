@@ -21,7 +21,7 @@
         <div id="post">
             <Link to="post/{post.id}">    
                 <PostBlock 
-                    author={accounts.find(account => post.authorId === account.id).name}
+                    author={accounts.find(account => post.authorId === account.id).userName}
                     title={post.title} 
                     content={post.content}
                 />

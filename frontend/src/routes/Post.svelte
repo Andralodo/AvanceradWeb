@@ -27,7 +27,7 @@
     </div>
     <div id="postContainer">
         <h1>{post.title}</h1>
-        <p>Posted by: {accounts.find(account => post.authorId === account.id).name}</p>
+        <p>Posted by: {accounts.find(account => post.authorId === account.id).userName}</p>
         <p>{post.content}</p>
     </div>
     <div id="commentHeadingContainer">
@@ -40,7 +40,7 @@
         {#each postComments as comment}
         <div id="comment">
             <CommentBlock 
-                id={comment.id} author={accounts.find(account => comment.commenterId === account.id).name}
+                id={comment.id} author={accounts.find(account => comment.commenterId === account.id).userName}
                 comment={comment.comment}
             />
         </div>
@@ -89,6 +89,7 @@
                     <button type="submit">Delete</button>
                 </div>
             </form>
+        </div>
     </DeletePostModal>
 </div>
 

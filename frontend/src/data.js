@@ -1,7 +1,7 @@
 export const accounts = [
-	{id: 1, name: "Alice"},
-	{id: 2, name: "Bob"},
-	{id: 3, name: "Claire"},
+	{id: 1, userName: "Alice", password: "", firstName: "Alice", lastName: "Carlsson"},
+	{id: 2, userName: "Bob", password: "", firstName: "Bob", lastName: "Carlsson"},
+	{id: 3, userName: "Claire", password: "", firstName: "Claire", lastName: "Carlsson"},
 ]
 
 export const posts = [
