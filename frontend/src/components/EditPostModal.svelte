@@ -1,5 +1,6 @@
 <script>
 	export let showEditPostModal; // boolean
+	export let post
 
 	let dialog; // HTMLDialogElement
 
@@ -15,7 +16,22 @@
 	<div on:click|stopPropagation>
 		<slot name="header" />
 		<hr />
-		<slot />
+		<div id="addPostContainer">
+            <form action="">
+                <div id="postTitleInModalContainer">
+                    <label for="titleInput">Title</label>
+                    <input name="titleInput" value={post.title} type="text">
+                </div>
+            
+                <div id="postContentInModalContainer">
+                    <label for="contentInput">Content</label>
+                    <textarea name="contentInput" value={post.content} cols="30" rows="10"></textarea>
+                </div>
+                <div id="sumbitPostContainer">
+                    <button type="submit">Post</button>
+                </div>
+            </form>
+        </div>
 		<hr />
 		<!-- svelte-ignore a11y-autofocus -->
 		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
@@ -60,4 +76,28 @@
 	/* button {
 		display: block;
 	} */
+
+	#postTitleInModalContainer{
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    #postContentInModalContainer{
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    #sumbitPostContainer{
+        margin-top: 0.5rem;
+        /* text-align: left; */
+    }
+    
+
+    #addPostContainer{
+        display: flex;
+        flex-direction: column;
+    }
 </style>

@@ -3,6 +3,10 @@
 
 	let dialog; // HTMLDialogElement
 
+	export let id
+    export let author
+	export let comment
+
 	let showEdit = false
 	let showDelete = false
 
@@ -16,31 +20,41 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		{#if [showEdit == true]}
+		{#if showEdit == true}
 			<div id="editCommentContainer">
 				<slot name="header" />
 				<hr />
-				<button>
-					Save
-				</button>
-				<button on:click={() => (showEdit = false)}>
-					Back to comment
-				</button>
+				<div id="EditComment">
+					<form action="">    
+						<div id="commentModal">
+							<label for="contentInput">Comment</label>
+							<textarea name="contentInput" value="{comment}" cols="30" rows="10"></textarea>
+						</div>
+						<div id="EdditCommentButton">
+							<button type="submit">Save</button>
+							<button on:click={() => (showEdit = false)}>
+								Back to comment
+							</button>
+						</div>
+					</form>
+				</div>
 				<hr />
 				<!-- svelte-ignore a11y-autofocus -->
 				<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 			</div>
-		{:else if [showDelete == true]}
+		{:else if showDelete == true}
 			<div id="deleteCommentContainer">
 				<slot name="header" />
 				<hr />
 				<p> Are you sure you want to delete this comment?</p>
-				<button>
-					Yes
-				</button>
-				<button on:click={() => (showDelete = false)}>
-					No
-				</button>
+				<form action="">
+					<button type="submit">
+						Yes
+					</button>
+					<button on:click={() => (showDelete = false)}>
+						No
+					</button>
+				</form>
 				<hr />
 				<!-- svelte-ignore a11y-autofocus -->
 				<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
@@ -55,7 +69,7 @@
 					<button on:click={() => (showEdit = true)}>
 						Edit
 					</button>
-					<button on:click={() => (showEdit = true)}>
+					<button on:click={() => (showDelete = true)}>
 						Delete
 					</button>
 				</div>
@@ -104,4 +118,20 @@
 	/* button {
 		display: block;
 	} */
+
+	#EdditCommentButton{
+        margin-top: 0.5rem;
+    }
+
+    #EditComment{
+        display: flex;
+        flex-direction: column;
+    }
+
+	#commentModal{
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
 </style>

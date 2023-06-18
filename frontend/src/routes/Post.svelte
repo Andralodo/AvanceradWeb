@@ -61,7 +61,7 @@
         </div>
     </AddCommentModal>
 
-    <EditPostModal bind:showEditPostModal>
+    <EditPostModal bind:showEditPostModal post={post}>
         <div id="editPostModal">
             <form action="">
                 <div id="editPostTitleModal">
