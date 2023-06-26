@@ -2,8 +2,6 @@ CREATE TABLE accounts (
     accountId INTEGER AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE,
     password VARCHAR(255),
-    firstName VARCHAR(50),
-    lastName VARCHAR(50),
     PRIMARY KEY (accountId)
 );
 
@@ -26,8 +24,8 @@ CREATE TABLE comments (
     FOREIGN KEY (accountId) REFERENCES accounts(accountId)
 );
 
-INSERT INTO accounts (username, password, firstName, lastName) VALUES ('Andralodo', '123456', 'Andrey', 'Arronet');
-INSERT INTO accounts (username, password, firstName, lastName) VALUES ('Kareth', '123456', 'Gustaf', 'Sanderbratt');
+INSERT INTO accounts (username, password) VALUES ('Andralodo', '123456');
+INSERT INTO accounts (username, password) VALUES ('Kareth', '123456');
 
 INSERT INTO posts (accountId, title, content) VALUES (1, 'Första Posten', 'Får se om det här funkar');
 INSERT INTO posts (accountId, title, content) VALUES (2, 'Andra Posten', 'Fixade profile page');
