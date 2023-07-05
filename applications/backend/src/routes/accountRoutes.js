@@ -5,10 +5,10 @@ const router = express.Router();
 
 router.get('/:id', accountController.getAccount)
 
-router.post('/', accountController.createAccount)
+router.post('/createAccount', accountController.createAccount)
 
-router.patch('/:id', accountController.updateAccount)
+router.patch('/updateAccount/:id', accountController.updateAccount)
 
-router.delete('/:id', accountController.deleteAccount)
+router.delete('/deleteAccount/:id', accountController.deleteAccount)
 
 export default router;

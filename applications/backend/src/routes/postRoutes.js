@@ -7,10 +7,10 @@ router.get('/', postController.getAllPosts)
 
 router.get('/:id', postController.getPost)
 
-router.post('/', postController.createPost)
+router.post('/createPost', postController.createPost)
 
-router.patch('/:id', postController.updatePost)
+router.patch('/updatePost/:id', postController.updatePost)
 
-router.delete('/:id', postController.deletePost)
+router.delete('/deletePost/:id', postController.deletePost)
 
 export default router;

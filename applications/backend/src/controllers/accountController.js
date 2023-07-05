@@ -2,7 +2,7 @@ import db from "../db.js";
 
 const DATABASE_ERROR_MESSAGE ="Internal Server Error"
 
-function validatePost(accountData){
+function validateAccount(accountData){
   const minUsernameLength = 3
   const maxUsernameLength = 20
 
@@ -59,7 +59,7 @@ export const createAccount = async (req, res) => {
 
   console.log(accountData)
 
-  const errorMessages = validatePost(accountData)
+  const errorMessages = validateAccount(accountData)
 
   console.log(errorMessages)
 
@@ -69,12 +69,14 @@ export const createAccount = async (req, res) => {
   }
 
   try{
-    const query = "INSERT INTO posts (username, password) VALUES (?, ?)"
-    const values = [accountData.accountId, accountData.username, accountData.password]
+    const query = "INSERT INTO accounts (username, password) VALUES (?, ?)"
+    const values = [accountData.username, accountData.password]
 
     const [account] = await db.query(query, values)
 
-    res.status(200).send(account.insertedId);
+    console.log(account)
+
+    res.status(200).json(account);
   }
   catch(error){
     res.status(500).send(DATABASE_ERROR_MESSAGE);
@@ -82,10 +84,9 @@ export const createAccount = async (req, res) => {
 };
 
 export const updateAccount = async (req, res) => {
-  const accountId = req.params.id
   const accountData = req.body;
 
-  const errorMessages = validatePost(accountData)
+  const errorMessages = validateAccount(accountData)
 
   if(errorMessages.length > 0){
       res.status(400).send(json(errorMessages))
@@ -94,11 +95,11 @@ export const updateAccount = async (req, res) => {
   
   try{
     const query = "UPDATE accounts SET username = ?, password = ? WHERE accountId = ?"
-    const values = [accountData.username, accountData.password, accountId]
+    const values = [accountData.username, accountData.password, accountData.accountId]
   
     const account = await db.query(query, values)
   
-    res.status(200).send(account);
+    res.status(200).json(account);
   }
   catch(error){
     res.status(500).send(DATABASE_ERROR_MESSAGE);
@@ -113,7 +114,7 @@ export const deleteAccount = async (req, res) => {
 
     const account = await db.query(query, [accountId])
   
-    res.send(account);
+    res.json(account);
   }
   catch(error){
     res.status(500).send(DATABASE_ERROR_MESSAGE);
