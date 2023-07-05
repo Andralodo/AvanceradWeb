@@ -1,10 +1,32 @@
 <script>
     import PostBlock from "../components/PostBlock.svelte";
     import { Router, Link, Route } from "svelte-routing";
-    import { posts, accounts } from "../data.js" 
-
+    // import { posts, accounts } from "../data.js";
+    import { onMount } from "svelte";
     import Modal from '../components/Modal.svelte';
     let showModal = false;
+
+    let posts = []
+    let accounts = []
+    onMount(async () =>{
+        posts = await getPosts();
+        accounts = await getAccounts();
+    })
+
+    const getPosts = async () => {
+        const response = await fetch("http://localhost:8080/api/posts");
+        const data = await response.json();
+        console.log(data)
+        return data
+    };
+
+    const getAccounts = async () => {
+        const response = await fetch("http://localhost:8080/api/accounts");
+        const data = await response.json();
+        console.log(data)
+        return data
+    };
+
 
 </script>
 
@@ -17,17 +39,24 @@
     </div>
     
     <div id="postContainer">
-        {#each posts as post}
-        <div id="post">
-            <Link to="post/{post.id}">    
-                <PostBlock 
-                    author={accounts.find(account => post.authorId === account.id).userName}
-                    title={post.title} 
-                    content={post.content}
-                />
-            </Link>
-        </div>
-        {/each}
+        {#await getPosts()}
+            <p>Loading...</p>
+        {:then posts}
+            {#each posts as post}
+            <div id="post">
+                {#await getAccounts()}
+                {:then accounts}
+                <Link to="post/{post.postId}">    
+                    <PostBlock 
+                        author={accounts.find(account => post.accountId === account.accountId).username}
+                        title={post.title} 
+                        content={post.content}
+                    />
+                </Link>
+                {/await}
+            </div>
+            {/each}
+        {/await}
     </div>
 
     <Modal bind:showModal>

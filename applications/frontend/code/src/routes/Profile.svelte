@@ -1,10 +1,25 @@
 <script>
     import { accounts } from "../data";
-    let account = accounts.find(account => 1===account.id)
+    // let account = accounts.find(account => 1===account.id)
     import EditProfileModal from "../components/EditProfileModal.svelte";
     import DeleteProfileModal from "../components/DeleteProfileModal.svelte";
+    import { onMount } from "svelte";
     let showEditProfileModal = false
     let showDeleteProfileModal = false
+
+    const accountId = 1
+    let account = []
+
+    onMount(async () =>{
+        account = await getAccount();
+    })
+
+    const getAccount = async () => {
+        const response = await fetch(`http://localhost:8080/api/accounts/${accountId}`);
+        const data = await response.json();
+        console.log(data)
+        return data
+    };
 </script>
 
 
@@ -14,40 +29,34 @@
         <button on:click={() => (showEditProfileModal = true)}>Edit Profile</button>
         <button on:click={() => (showDeleteProfileModal = true)}>Delete Account</button>
     </div>
-    <div>
-        <h3>Username</h3>
-        <p>{account.userName}</p>   
-        <h3>First Name</h3>
-        <p>{account.firstName}</p>
-        <h3>Last Name</h3>
-        <p>{account.lastName}</p>
-    </div>
-
-    <EditProfileModal bind:showEditProfileModal>
-        <div id="addPostContainer">
-            <form action="">
-                <div id="postUsernameInModalContainer">
-                    <label for="titleInput">Username</label>
-                    <input name="titleInput" value="{account.userName}" type="text">
-                </div>
-                <div id="postUsernameInModalContainer">
-                    <label for="titleInput">First Name</label>
-                    <input name="titleInput" value="{account.firstName}" type="text">
-                </div>
-                <div id="postUsernameInModalContainer">
-                    <label for="titleInput">Last Name</label>
-                    <input name="titleInput" value="{account.lastName}" type="text">
-                </div>
-                <div id="postUsernameInModalContainer">
-                    <label for="titleInput">Password</label>
-                    <input name="titleInput" value="{account.password}" type="password">
-                </div>
-                <div id="sumbitPostContainer">
-                    <button type="submit">Update</button>
-                </div>
-            </form>
+    {#await getAccount()}
+    {:then account}
+        <div>
+            <h3>Username</h3>
+            <p>{account[0].username}</p>   
         </div>
-    </EditProfileModal>
+    {/await}
+
+    {#await getAccount()}
+    {:then account}
+        <EditProfileModal bind:showEditProfileModal>
+            <div id="addPostContainer">
+                <form action="">
+                    <div id="postUsernameInModalContainer">
+                        <label for="titleInput">Username</label>
+                        <input name="titleInput" value="{account[0].username}" type="text">
+                    </div>
+                    <div id="postUsernameInModalContainer">
+                        <label for="titleInput">Password</label>
+                        <input name="titleInput" value="{account[0].password}" type="password">
+                    </div>
+                    <div id="sumbitPostContainer">
+                        <button type="submit">Update</button>
+                    </div>
+                </form>
+            </div>
+        </EditProfileModal>
+    {/await}
 
     <DeleteProfileModal bind:showDeleteProfileModal>
         <div id="deletePostModal">

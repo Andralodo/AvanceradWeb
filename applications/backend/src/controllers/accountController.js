@@ -39,6 +39,20 @@ function validateAccount(accountData){
   return validationErrors
 }
 
+export const getAllAccount = async (req, res) => {
+  
+  try{
+    const query = "SELECT accountId, username FROM accounts"
+  
+    const [post] = await db.query(query)
+  
+    res.status(200).send(post);
+  }
+  catch(error){
+    res.status(500).send(DATABASE_ERROR_MESSAGE);
+  }
+};
+
 export const getAccount = async (req, res) => {
   
   try{

@@ -1,7 +1,7 @@
 <script>
     import CommentBlock from "../components/CommentBlock.svelte";
     import { Router, Link, Route } from "svelte-routing";
-    import { posts, accounts, comments } from "../data.js" 
+    import { onMount } from "svelte";
 
     import AddCommentModal from '../components/AddCommentModal.svelte';
     import EditPostModal from '../components/EditPostModal.svelte';
@@ -11,9 +11,37 @@
     let showDeletePostModal = false;
 
     const id = parseInt(new URL(document.location.href).pathname.split('/')[2]);
-    let post = posts.find(post => id === post.id)
 
-    let postComments = comments.filter(function (comment) { return comment. postId == id });
+    let post = []
+    let accounts = []
+    let comments = []
+
+    onMount(async () =>{
+        post = await getPost();
+        accounts = await getAccounts();
+        comments = await getComments()
+    })
+
+    const getPost = async () => {
+        const response = await fetch(`http://localhost:8080/api/posts/${id}`);
+        const data = await response.json();
+        console.log(data)
+        return data
+    };
+
+    const getAccounts = async () => {
+        const response = await fetch("http://localhost:8080/api/accounts");
+        const data = await response.json();
+        // console.log(data)
+        return data
+    };
+
+    const getComments = async () => {
+        const response = await fetch(`http://localhost:8080/api/comments/getComment/${id}`);
+        const data = await response.json();
+        // console.log(data)
+        return data
+    };
 </script>
 
 <div id="mainContainer">
@@ -26,9 +54,15 @@
         </button>
     </div>
     <div id="postContainer">
-        <h1>{post.title}</h1>
-        <p>Posted by: {accounts.find(account => post.authorId === account.id).userName}</p>
-        <p>{post.content}</p>
+        {#await getPost()}
+        {:then post}
+            <h1>{post[0].title}</h1>
+            {#await getAccounts()}
+            {:then accounts}
+                <p>Posted by: {accounts.find(account => post[0].accountId === account.accountId).username}</p>
+            {/await}
+            <p>{post[0].content}</p>
+        {/await}
     </div>
     <div id="commentHeadingContainer">
         <h2>Comments</h2>
@@ -37,60 +71,72 @@
         </button>
     </div>
     <div id="commentContainer">
-        {#each postComments as comment}
-        <div id="comment">
-            <CommentBlock 
-                id={comment.id} author={accounts.find(account => comment.commenterId === account.id).userName}
-                comment={comment.comment}
-            />
-        </div>
-        {/each}
+        {#await getComments()}
+        {:then comments}
+            {#each comments as comment}
+                {#await getAccounts()}
+                {:then accounts}
+                    <div id="comment">
+                        <CommentBlock 
+                            id={comment.id} 
+                            author={accounts.find(account => comment.accountId === account.accountId).username}
+                            comment={comment.comment}
+                        />
+                    </div>
+                {/await}
+            {/each}
+        {/await}
     </div>
 
-    <AddCommentModal bind:showAddCommentModal>
-        <div id="addCommentModal">
-            <form action="">    
-                <div id="commentModal">
-                    <label for="contentInput">Comment</label>
-                    <textarea name="contentInput" cols="30" rows="10"></textarea>
-                </div>
-                <div id="submitCommentModal">
-                    <button type="submit">Post</button>
-                </div>
-            </form>
-        </div>
-    </AddCommentModal>
+    {#await getPost()}
+    {:then post}
+        <AddCommentModal bind:showAddCommentModal>
+            <div id="addCommentModal">
+                <form action="localhost:8080/api/comments/createComment" method="POST">
+                    <div id="commentModal">
+                        <label for="contentInput">Comment</label>
+                        <textarea name="comment" cols="30" rows="10"></textarea>
+                        <input name="accountId" type="hidden" value="1">
+                        <input name="postId" type="hidden" value={post.postId}>
+                    </div>
+                    <div id="submitCommentModal">
+                        <button type="submit">Post</button>
+                    </div>
+                </form>
+            </div>
+        </AddCommentModal>
 
-    <EditPostModal bind:showEditPostModal post={post}>
-        <div id="editPostModal">
-            <form action="">
-                <div id="editPostTitleModal">
-                    <label for="titleInput">Title</label>
-                    <input name="titleInput" type="text">
-                </div>
-            
-                <div id="editPostContentModal">
-                    <label for="contentInput">Content</label>
-                    <textarea name="contentInput" cols="30" rows="10"></textarea>
-                </div>
-                <div id="savePostButtonModal">
-                    <button type="submit">Save</button>
-                </div>
-            </form>
-    </EditPostModal>
+        <EditPostModal bind:showEditPostModal post={post[0]}>
+            <div id="editPostModal">
+                <form action="">
+                    <div id="editPostTitleModal">
+                        <label for="titleInput">Title</label>
+                        <input name="titleInput" type="text">
+                    </div>
+                
+                    <div id="editPostContentModal">
+                        <label for="contentInput">Content</label>
+                        <textarea name="contentInput" cols="30" rows="10"></textarea>
+                    </div>
+                    <div id="savePostButtonModal">
+                        <button type="submit">Save</button>
+                    </div>
+                </form>
+        </EditPostModal>
 
-    <DeletePostModal bind:showDeletePostModal>
-        <div id="deletePostModal">
-            <form action="">
-                <div>
-                    <p>Are you sure you want to delete this post?</p>
-                </div>
-                <div id="deletePostButtonModal">
-                    <button type="submit">Delete</button>
-                </div>
-            </form>
-        </div>
-    </DeletePostModal>
+        <DeletePostModal bind:showDeletePostModal>
+            <div id="deletePostModal">
+                <form action="">
+                    <div>
+                        <p>Are you sure you want to delete this post?</p>
+                    </div>
+                    <div id="deletePostButtonModal">
+                        <button type="submit">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </DeletePostModal>
+    {/await}
 </div>
 
 <style>
