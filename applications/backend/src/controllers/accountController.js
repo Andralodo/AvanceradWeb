@@ -4,10 +4,10 @@ const DATABASE_ERROR_MESSAGE ="Internal Server Error"
 
 function validateAccount(accountData){
   const minUsernameLength = 3
-  const maxUsernameLength = 20
+  const maxUsernameLength = 15
 
   const minPasswordLength = 5
-  const maxPasswordLength = 100
+  const maxPasswordLength = 20
 
 
   const validationErrors = []
@@ -103,7 +103,7 @@ export const updateAccount = async (req, res) => {
   const errorMessages = validateAccount(accountData)
 
   if(errorMessages.length > 0){
-      res.status(400).send(json(errorMessages))
+      res.status(400).send(errorMessages)
       return;
   }
   

@@ -1,9 +1,33 @@
 <script>
+    import { navigate } from "svelte-routing";
+
 	export let showDeletePostModal; // boolean
+
+	export let postId
 
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showDeletePostModal) dialog.showModal();
+
+	async function deletePostRequest(){
+
+		try{
+			const response = await fetch(`http://localhost:8080/api/posts/deletePost/${postId}`, 
+			{
+				method: "DELETE"
+			})
+
+			if (response.ok) {
+				navigate("/", {
+					replace: false
+				});
+			}
+
+		}
+		catch(error){
+			console.log("deletePostt error: ", error);
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -15,7 +39,16 @@
 	<div on:click|stopPropagation>
 		<slot name="header" />
 		<hr />
-		<slot />
+		<div id="deletePostModal">
+			<div>
+				<p>Are you sure you want to delete this post?</p>
+			</div>
+			<div id="deletePostButtonModal">
+				<button type="submit" on:click={deletePostRequest}>
+					Delete
+				</button>
+			</div>
+		</div>
 		<hr />
 		<!-- svelte-ignore a11y-autofocus -->
 		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->

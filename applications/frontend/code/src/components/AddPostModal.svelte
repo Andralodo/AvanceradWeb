@@ -1,35 +1,41 @@
 <script>
-	export let showEditPostModal; // boolean
-	export let post
+	import { navigate } from "svelte-routing";
+
+	export let showAddPostModal; // boolean
 
 	let dialog; // HTMLDialogElement
 
-	$: if (dialog && showEditPostModal) dialog.showModal();
+	$: if (dialog && showAddPostModal) dialog.showModal();
 
-	let updatePost = {
-        accountId: 1,
-        title : post.title,
-        content: post.content
+	let addPost = {
+        title: "",
+        content: "",
+        accountId: 1
     }
 
-    async function updatePostRequest(){
+    async function addPostRequest(){
+
         try{
-            const response = await fetch(`http://localhost:8080/api/posts/updatePost/${post.postId}`, 
+            const response = await fetch("http://localhost:8080/api/posts/createPost", 
             {
-                method: "PATCH",
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(updatePost),
+                body: JSON.stringify(addPost),
             })
+
+            let createdPostId = await response.json()
             switch (response.status) {
                 case 200:
-				dialog.close()
-                window.location.reload()
+                navigate(`/post/${createdPostId}`, {
+                    replace: false,
+                });
+                break;
             }
         }
         catch(error){
-            console.log("updatePost error: ", error);
+            console.log("addPost error: ", error);
         }
     }
 </script>
@@ -37,22 +43,22 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showEditPostModal = false)}
+	on:close={() => (showAddPostModal = false)}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
 		<slot name="header" />
 		<hr />
 		<div id="addPostContainer">
-            <form on:submit|preventDefault={updatePostRequest}>
+            <form on:submit|preventDefault={addPostRequest}>
                 <div id="postTitleInModalContainer">
                     <label for="titleInput">Title</label>
-                    <input name="titleInput" bind:value={updatePost.title} type="text">
+                    <input name="titleInput" type="text" bind:value={addPost.title}>
                 </div>
             
                 <div id="postContentInModalContainer">
                     <label for="contentInput">Content</label>
-                    <textarea name="contentInput" bind:value={updatePost.content} cols="30" rows="10"></textarea>
+                    <textarea name="contentInput" cols="30" rows="10" bind:value={addPost.content}></textarea>
                 </div>
                 <div id="sumbitPostContainer">
                     <button type="submit">Post</button>
@@ -103,28 +109,4 @@
 	/* button {
 		display: block;
 	} */
-
-	#postTitleInModalContainer{
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-
-    #postContentInModalContainer{
-        margin-top: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-
-    #sumbitPostContainer{
-        margin-top: 0.5rem;
-        /* text-align: left; */
-    }
-    
-
-    #addPostContainer{
-        display: flex;
-        flex-direction: column;
-    }
 </style>

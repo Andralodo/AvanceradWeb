@@ -1,9 +1,32 @@
 <script>
+    import { navigate } from "svelte-routing";
+
 	export let showDeleteProfileModal; // boolean
+	export let accountId
 
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showDeleteProfileModal) dialog.showModal();
+
+	async function deleteAccountRequest(){
+
+		try{
+			const response = await fetch(`http://localhost:8080/api/accounts/deleteAccount/${accountId}`, 
+			{
+				method: "DELETE"
+			})
+
+			if (response.ok) {
+				navigate("/", {
+					replace: false
+				});
+			}
+
+		}
+		catch(error){
+			console.log("deleteAccount error: ", error);
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -15,7 +38,18 @@
 	<div on:click|stopPropagation>
 		<slot name="header" />
 		<hr />
-		<slot />
+		<div id="deletePostModal">
+            <form action="">
+                <div>
+                    <p>Are you sure you want to delete your account?</p>
+                </div>
+                <div id="deletePostButtonModal">
+                    <button type="submit" on:click={deleteAccountRequest}>
+						Delete
+					</button>
+                </div>
+            </form>
+        </div>
 		<hr />
 		<!-- svelte-ignore a11y-autofocus -->
 		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->

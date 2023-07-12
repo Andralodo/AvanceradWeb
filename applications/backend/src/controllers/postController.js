@@ -87,7 +87,7 @@ export const createPost = async (req, res) => {
 
     const [post] = await db.query(query, values)
 
-    res.status(200).send(post.insertedId);
+    res.status(200).json(post.insertId);
   }
   catch(error){
     res.status(500).send(DATABASE_ERROR_MESSAGE);
@@ -122,11 +122,16 @@ export const deletePost = async (req, res) => {
   const postId = req.params.id
 
   try{
-    const query = "DELETE FROM posts WHERE postId = ?"
 
-    const post = await db.query(query, [postId])
-  
-    res.send(post);
+    //Delete comments that are tied to the post first
+    const queryComments = "DELETE FROM comments WHERE postId = ?"
+    const comments = await db.query(queryComments, [postId])
+
+    //Delete post
+    const queryPost = "DELETE FROM posts WHERE postId = ?"
+    const post = await db.query(queryPost, [postId])
+    
+    res.send("Post succesfully deleted");
   }
   catch(error){
     res.status(500).send(DATABASE_ERROR_MESSAGE);

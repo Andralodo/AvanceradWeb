@@ -1,6 +1,6 @@
 <script>
     import CommentBlock from "../components/CommentBlock.svelte";
-    import { Router, Link, Route } from "svelte-routing";
+    // import { Router, Link, Route, navigate } from "svelte-routing";
     import { onMount } from "svelte";
 
     import AddCommentModal from '../components/AddCommentModal.svelte';
@@ -10,7 +10,7 @@
     let showEditPostModal = false;
     let showDeletePostModal = false;
 
-    const id = parseInt(new URL(document.location.href).pathname.split('/')[2]);
+    const postId = parseInt(new URL(document.location.href).pathname.split('/')[2]);
 
     let post = []
     let accounts = []
@@ -23,23 +23,20 @@
     })
 
     const getPost = async () => {
-        const response = await fetch(`http://localhost:8080/api/posts/${id}`);
+        const response = await fetch(`http://localhost:8080/api/posts/${postId}`);
         const data = await response.json();
-        console.log(data)
         return data
     };
 
     const getAccounts = async () => {
         const response = await fetch("http://localhost:8080/api/accounts");
         const data = await response.json();
-        // console.log(data)
         return data
     };
 
     const getComments = async () => {
-        const response = await fetch(`http://localhost:8080/api/comments/getComment/${id}`);
+        const response = await fetch(`http://localhost:8080/api/comments/getAllPostComments/${postId}`);
         const data = await response.json();
-        // console.log(data)
         return data
     };
 </script>
@@ -54,16 +51,15 @@
         </button>
     </div>
     <div id="postContainer">
-        {#await getPost()}
-        {:then post}
+        {#await getPost() then post}
             <h1>{post[0].title}</h1>
-            {#await getAccounts()}
-            {:then accounts}
+            {#await getAccounts() then accounts}
                 <p>Posted by: {accounts.find(account => post[0].accountId === account.accountId).username}</p>
             {/await}
             <p>{post[0].content}</p>
         {/await}
     </div>
+
     <div id="commentHeadingContainer">
         <h2>Comments</h2>
         <button on:click={() => (showAddCommentModal = true)}>
@@ -71,14 +67,12 @@
         </button>
     </div>
     <div id="commentContainer">
-        {#await getComments()}
-        {:then comments}
+        {#await getComments() then comments}
             {#each comments as comment}
-                {#await getAccounts()}
-                {:then accounts}
+                {#await getAccounts() then accounts}
                     <div id="comment">
                         <CommentBlock 
-                            id={comment.id} 
+                            id={comment.commentId} 
                             author={accounts.find(account => comment.accountId === account.accountId).username}
                             comment={comment.comment}
                         />
@@ -88,54 +82,12 @@
         {/await}
     </div>
 
-    {#await getPost()}
-    {:then post}
-        <AddCommentModal bind:showAddCommentModal>
-            <div id="addCommentModal">
-                <form action="localhost:8080/api/comments/createComment" method="POST">
-                    <div id="commentModal">
-                        <label for="contentInput">Comment</label>
-                        <textarea name="comment" cols="30" rows="10"></textarea>
-                        <input name="accountId" type="hidden" value="1">
-                        <input name="postId" type="hidden" value={post.postId}>
-                    </div>
-                    <div id="submitCommentModal">
-                        <button type="submit">Post</button>
-                    </div>
-                </form>
-            </div>
-        </AddCommentModal>
+    {#await getPost() then post}
+        <AddCommentModal bind:showAddCommentModal postId={postId}/>
 
-        <EditPostModal bind:showEditPostModal post={post[0]}>
-            <div id="editPostModal">
-                <form action="">
-                    <div id="editPostTitleModal">
-                        <label for="titleInput">Title</label>
-                        <input name="titleInput" type="text">
-                    </div>
-                
-                    <div id="editPostContentModal">
-                        <label for="contentInput">Content</label>
-                        <textarea name="contentInput" cols="30" rows="10"></textarea>
-                    </div>
-                    <div id="savePostButtonModal">
-                        <button type="submit">Save</button>
-                    </div>
-                </form>
-        </EditPostModal>
+        <EditPostModal bind:showEditPostModal post={post[0]}/>
 
-        <DeletePostModal bind:showDeletePostModal>
-            <div id="deletePostModal">
-                <form action="">
-                    <div>
-                        <p>Are you sure you want to delete this post?</p>
-                    </div>
-                    <div id="deletePostButtonModal">
-                        <button type="submit">Delete</button>
-                    </div>
-                </form>
-            </div>
-        </DeletePostModal>
+        <DeletePostModal bind:showDeletePostModal postId={postId}/>
     {/await}
 </div>
 
@@ -174,62 +126,11 @@
         flex-direction: column;
     }
 
-    #submitCommentModal{
-        margin-top: 0.5rem;
-    }
-
-    #addCommentModal{
-        display: flex;
-        flex-direction: column;
-    }
-
     #buttonContainer{
         display: flex;
         flex-direction: row;
         justify-content: flex-end;
         margin-bottom: 1rem;
-    }
-
-
-    #commentModal{
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-
-    #editPostTitleModal{
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-
-    #editPostContentModal{
-        margin-top: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-    }
-
-    #savePostButtonModal{
-        margin-top: 0.5rem;
-        /* text-align: left; */
-    }
-    
-
-    #editPostModal{
-        display: flex;
-        flex-direction: column;
-    }
-
-    #deletePostButtonModal{
-        margin-top: 0.5rem;
-        /* text-align: left; */
-    }
-    
-
-    #deletePostModal{
-        display: flex;
-        flex-direction: column;
     }
 
 

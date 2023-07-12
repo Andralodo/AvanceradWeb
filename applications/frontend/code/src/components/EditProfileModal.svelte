@@ -1,9 +1,36 @@
 <script>
 	export let showEditProfileModal; // boolean
 
+	export let account
+
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showEditProfileModal) dialog.showModal();
+
+	let accountBody = {
+			accountId: account.accountId,
+			username: account.username,
+			password: account.password
+		}
+
+	async function updateAccountRequest(){
+		try{
+			const response = await fetch(`http://localhost:8080/api/accounts/updateAccount`, 
+			{
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(accountBody)
+			})
+			if (response.ok){
+				window.location.reload()
+			}
+		}
+		catch(error){
+			console.log("updateAccount error: ", error);
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -15,7 +42,21 @@
 	<div on:click|stopPropagation>
 		<slot name="header" />
 		<hr />
-		<slot />
+		<div id="UpdateAccountContainer">
+			<form on:submit|preventDefault={updateAccountRequest}>
+				<div id="postUsernameInModalContainer">
+					<label for="titleInput">Username</label>
+					<input name="titleInput" bind:value="{accountBody.username}" type="text">
+				</div>
+				<div id="postUsernameInModalContainer">
+					<label for="titleInput">Password</label>
+					<input name="titleInput" bind:value="{accountBody.password}" type="password">
+				</div>
+				<div id="sumbitPostContainer">
+					<button type="submit">Update</button>
+				</div>
+			</form>
+		</div>
 		<hr />
 		<!-- svelte-ignore a11y-autofocus -->
 		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->

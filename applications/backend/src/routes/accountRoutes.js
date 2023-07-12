@@ -7,9 +7,11 @@ router.get('/', accountController.getAllAccount)
 
 router.get('/:id', accountController.getAccount)
 
-router.post('/createAccount', accountController.createAccount)
+router.post('/signUp', accountController.createAccount)
 
-router.patch('/updateAccount/:id', accountController.updateAccount)
+router.post('/signIn', accountController.createAccount)
+
+router.patch('/updateAccount', accountController.updateAccount)
 
 router.delete('/deleteAccount/:id', accountController.deleteAccount)
 

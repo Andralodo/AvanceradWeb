@@ -16,7 +16,6 @@
 <CommentModal 
     bind:showCommentModal 
     id={id}
-    author={author}
     comment={comment}>
 	<p>Posted by: {author}</p>
     <p>{comment}</p>

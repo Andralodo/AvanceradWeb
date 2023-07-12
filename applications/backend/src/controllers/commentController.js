@@ -81,13 +81,12 @@ export const createComment = async (req, res) => {
 };
 
 export const updateComment = async (req, res) => {
-  // const commentId = req.params.commentId
   const commentData = req.body;
 
   const errorMessages = validateComment(commentData)
 
   if(errorMessages.length > 0){
-      res.status(400).send(json(errorMessages))
+      res.status(400).send(errorMessages)
       return;
   }
   
@@ -106,6 +105,8 @@ export const updateComment = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
   const commentId = req.params.commentId
+
+  console.log(commentId)
 
   try{
     const query = "DELETE FROM comments WHERE commentId = ?"

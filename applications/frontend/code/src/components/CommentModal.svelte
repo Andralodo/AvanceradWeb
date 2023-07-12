@@ -1,16 +1,59 @@
 <script>
+	import { Router, Link, Route, navigate } from "svelte-routing";
 	export let showCommentModal; // boolean
 
 	let dialog; // HTMLDialogElement
 
 	export let id
-    export let author
 	export let comment
 
 	let showEdit = false
 	let showDelete = false
 
 	$: if (dialog && showCommentModal) dialog.showModal();
+
+	async function deleteCommentRequest(){
+		try{
+			const response = await fetch(`http://localhost:8080/api/comments/deleteComment/${id}`, 
+			{
+				method: "DELETE"
+			})
+			if (response.ok) {
+				showDelete = false
+				dialog.close()
+				window.location.reload()
+			}
+		}
+		catch(error){
+			console.log("deleteComment error: ", error);
+		}
+	}
+
+	async function updateCommentRequest(){
+		let commentBody = {
+			commentId: id,
+			comment: comment
+		}
+		try{
+			const response = await fetch(`http://localhost:8080/api/comments/updateComment/${id}`, 
+			{
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(commentBody)
+			})
+			switch (response.status) {
+				case 200:
+				showEdit = false
+				dialog.close()
+				window.location.reload()
+			}
+		}
+		catch(error){
+			console.log("updateComment error: ", error);
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -25,10 +68,10 @@
 				<slot name="header" />
 				<hr />
 				<div id="EditComment">
-					<form action="">    
+					<form on:submit|preventDefault={updateCommentRequest}>    
 						<div id="commentModal">
 							<label for="contentInput">Comment</label>
-							<textarea name="contentInput" value="{comment}" cols="30" rows="10"></textarea>
+							<textarea name="contentInput" bind:value="{comment}" cols="30" rows="10"></textarea>
 						</div>
 						<div id="EdditCommentButton">
 							<button type="submit">Save</button>
@@ -47,8 +90,8 @@
 				<slot name="header" />
 				<hr />
 				<p> Are you sure you want to delete this comment?</p>
-				<form action="">
-					<button type="submit">
+				<form>
+					<button type="button" on:click={deleteCommentRequest}>
 						Yes
 					</button>
 					<button on:click={() => (showDelete = false)}>
