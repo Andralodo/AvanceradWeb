@@ -1,26 +1,26 @@
 <script>
     import PostBlock from "../components/PostBlock.svelte";
-    import { Router, Link, Route, navigate } from "svelte-routing";
-    // import { posts, accounts } from "../data.js";
+    import {Link, } from "svelte-routing";
     import { onMount } from "svelte";
     import AddPostModal from "../components/AddPostModal.svelte";
     let showAddPostModal = false;
 
-    let posts = []
-    let accounts = []
+    let userId = localStorage.getItem("userId");
+	let username = localStorage.getItem("username");
+	let isLoggedIn = false;
+
+	if(userId != null && username != null){
+		isLoggedIn = true;
+	}
+
+    let posts;
     onMount(async () =>{
         posts = await getPosts();
-        accounts = await getAccounts();
+        // accounts = await getAccounts();
     })
 
     const getPosts = async () => {
         const response = await fetch("http://localhost:8080/api/posts");
-        const data = await response.json();
-        return data
-    };
-
-    const getAccounts = async () => {
-        const response = await fetch("http://localhost:8080/api/accounts");
         const data = await response.json();
         return data
     };
@@ -29,9 +29,11 @@
 <div id="mainContainer">
     <div id="postHeadingContainer">
         <h2>Posts</h2>
-        <button on:click={() => (showAddPostModal = true)}>
-            Create Post
-        </button>
+        {#if isLoggedIn}
+            <button on:click={() => (showAddPostModal = true)}>
+                Create Post
+            </button>
+        {/if}
     </div>
     
     <div id="postContainer">
@@ -40,15 +42,9 @@
         {:then posts}
             {#each posts as post}
             <div id="post">
-                {#await getAccounts() then accounts}
                 <Link to="post/{post.postId}">    
-                    <PostBlock 
-                        author={accounts.find(account => post.accountId === account.accountId).username}
-                        title={post.title} 
-                        content={post.content}
-                    />
+                    <PostBlock post = {post}/>
                 </Link>
-                {/await}
             </div>
             {/each}
         {/await}

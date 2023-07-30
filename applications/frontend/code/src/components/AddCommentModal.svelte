@@ -7,7 +7,7 @@
 	$: if (dialog && showAddCommentModal) dialog.showModal();
 
 	let addComment = {
-        accountId: 1,
+        accountId: localStorage.getItem("userId"),
         postId : postId,
         comment: ""
     }
@@ -17,6 +17,8 @@
             const response = await fetch("http://localhost:8080/api/comments/createComment", 
             {
                 method: "POST",
+				mode: "cors",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json"
                 },

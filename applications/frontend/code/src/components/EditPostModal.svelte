@@ -7,7 +7,7 @@
 	$: if (dialog && showEditPostModal) dialog.showModal();
 
 	let updatePost = {
-        accountId: 1,
+        accountId: localStorage.getItem("userId"),
         title : post.title,
         content: post.content
     }
@@ -17,6 +17,8 @@
             const response = await fetch(`http://localhost:8080/api/posts/updatePost/${post.postId}`, 
             {
                 method: "PATCH",
+                mode: "cors",
+                credentials:"include",
                 headers: {
                     "Content-Type": "application/json"
                 },

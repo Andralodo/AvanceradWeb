@@ -8,22 +8,24 @@
 	$: if (dialog && showEditProfileModal) dialog.showModal();
 
 	let accountBody = {
-			accountId: account.accountId,
 			username: account.username,
 			password: account.password
 		}
 
 	async function updateAccountRequest(){
 		try{
-			const response = await fetch(`http://localhost:8080/api/accounts/updateAccount`, 
+			const response = await fetch(`http://localhost:8080/api/accounts/updateAccount/${account.accountId}`, 
 			{
 				method: "PATCH",
+				mode: "cors",
+				credentials: "include",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify(accountBody)
 			})
 			if (response.ok){
+				localStorage.setItem("username", accountBody.username)
 				window.location.reload()
 			}
 		}

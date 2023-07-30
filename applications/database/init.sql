@@ -24,6 +24,10 @@ CREATE TABLE comments (
     FOREIGN KEY (accountId) REFERENCES accounts(accountId)
 );
 
+CREATE TABLE revoked_tokens (
+  token VARCHAR(255) PRIMARY KEY
+);
+
 INSERT INTO accounts (username, password) VALUES ('Andralodo', '123456');
 INSERT INTO accounts (username, password) VALUES ('Kareth', '123456');
 

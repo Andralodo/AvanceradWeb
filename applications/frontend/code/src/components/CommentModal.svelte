@@ -4,19 +4,34 @@
 
 	let dialog; // HTMLDialogElement
 
-	export let id
 	export let comment
+
+	let commentBody = {
+			commentId: comment.commentId,
+			comment: comment.comment,
+			accountId: comment.accountId
+		}
 
 	let showEdit = false
 	let showDelete = false
+
+	let userId = localStorage.getItem("userId");
+	let username = localStorage.getItem("username");
+	let isLoggedIn = false;
+
+	if(userId != null && username != null){
+		isLoggedIn = true;
+	}
 
 	$: if (dialog && showCommentModal) dialog.showModal();
 
 	async function deleteCommentRequest(){
 		try{
-			const response = await fetch(`http://localhost:8080/api/comments/deleteComment/${id}`, 
+			const response = await fetch(`http://localhost:8080/api/comments/deleteComment/${comment.commentId}`, 
 			{
-				method: "DELETE"
+				method: "DELETE",
+				mode: "cors",
+				credentials:"include"
 			})
 			if (response.ok) {
 				showDelete = false
@@ -30,14 +45,12 @@
 	}
 
 	async function updateCommentRequest(){
-		let commentBody = {
-			commentId: id,
-			comment: comment
-		}
 		try{
-			const response = await fetch(`http://localhost:8080/api/comments/updateComment/${id}`, 
+			const response = await fetch(`http://localhost:8080/api/comments/updateComment/${comment.commentId}`, 
 			{
 				method: "PATCH",
+				mode: "cors",
+				credentials:"include",
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -71,7 +84,7 @@
 					<form on:submit|preventDefault={updateCommentRequest}>    
 						<div id="commentModal">
 							<label for="contentInput">Comment</label>
-							<textarea name="contentInput" bind:value="{comment}" cols="30" rows="10"></textarea>
+							<textarea name="contentInput" bind:value="{comment.comment}" cols="30" rows="10"></textarea>
 						</div>
 						<div id="EdditCommentButton">
 							<button type="submit">Save</button>
@@ -106,16 +119,21 @@
 			<div id="commentContainer">
 				<slot name="header" />
 				<hr />
-				<slot />
+				<p>Posted by: {comment.username}</p>
+				<p>{comment.comment}</p>
 				<hr />
-				<div>
-					<button on:click={() => (showEdit = true)}>
-						Edit
-					</button>
-					<button on:click={() => (showDelete = true)}>
-						Delete
-					</button>
-				</div>
+				{#if isLoggedIn}
+					{#if userId == comment.accountId}
+					<div>
+						<button on:click={() => (showEdit = true)}>
+							Edit
+						</button>
+						<button on:click={() => (showDelete = true)}>
+							Delete
+						</button>
+					</div>
+					{/if}
+				{/if}
 				<!-- svelte-ignore a11y-autofocus -->
 				<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 			</div>

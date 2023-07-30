@@ -42,7 +42,14 @@ function validatePost(postData){
 export const getAllPosts = async (req, res) => {
     
   try{
-    const query = "SELECT * FROM posts"
+    const query = 
+    `SELECT 
+      p.postId AS postId, 
+      p.title AS title, 
+      p.content AS content, 
+      a.accountId AS accountId, 
+      a.username AS username 
+    FROM posts p INNER JOIN accounts a on a.accountId = p.accountId`
     const [posts] = await db.query(query)
   
     res.status(200).send(posts);
@@ -55,7 +62,14 @@ export const getAllPosts = async (req, res) => {
 export const getPost = async (req, res) => {
   
   try{
-    const query = "SELECT * FROM posts WHERE postId = ?"
+    const query = 
+    `SELECT 
+      p.postId AS postId, 
+      p.title AS title, 
+      p.content AS content, 
+      a.accountId AS accountId, 
+      a.username AS username 
+    FROM posts p INNER JOIN accounts a on a.accountId = p.accountId WHERE postId = ?`
     const postId = req.params.id
   
     const [post] = await db.query(query, [postId])
@@ -68,35 +82,42 @@ export const getPost = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-  const postData = req.body;
+    const postData = req.body;
 
-  console.log(postData)
+    console.log("CreatePost")
 
-  const errorMessages = validatePost(postData)
+    const errorMessages = validatePost(postData)
 
-  console.log(errorMessages)
+    console.log(errorMessages)
 
-  if(errorMessages.length > 0){
-      res.status(400).send(errorMessages)
-      return;
-  }
+    if(errorMessages.length > 0){
+        res.status(400).send(errorMessages)
+        return;
+    }
 
-  try{
-    const query = "INSERT INTO posts (accountId, title, content) VALUES (?, ?, ?)"
-    const values = [postData.accountId, postData.title, postData.content]
+    try{
+      const query = "INSERT INTO posts (accountId, title, content) VALUES (?, ?, ?)"
+      const values = [postData.accountId, postData.title, postData.content]
 
-    const [post] = await db.query(query, values)
+      const [post] = await db.query(query, values)
 
-    res.status(200).json(post.insertId);
-  }
-  catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
-  }
+      res.status(200).json(post.insertId);
+    }
+    catch(error){
+      res.status(500).send(DATABASE_ERROR_MESSAGE);
+    }
 };
 
 export const updatePost = async (req, res) => {
   const postId = req.params.id
   const postData = req.body;
+
+  console.log(req.user.id, " --- ", postData.accountId)
+
+  //Check if the user is updating his account
+  if(req.user.id != postData.accountId){
+    return res.status(401).json({ message: 'Wrong user' });
+  }
 
   const errorMessages = validatePost(postData)
 
@@ -121,15 +142,23 @@ export const updatePost = async (req, res) => {
 export const deletePost = async (req, res) => {
   const postId = req.params.id
 
+  //Get accountId of the comment
+  const result = await getAccountIdbyPostId(res, postId)
+
+  //Check if the user is updating his account
+  if(req.user.id != result[0].accountId){
+    return res.status(401).json({ message: 'Wrong user' });
+  }
+
   try{
 
     //Delete comments that are tied to the post first
     const queryComments = "DELETE FROM comments WHERE postId = ?"
-    const comments = await db.query(queryComments, [postId])
+    await db.query(queryComments, [postId])
 
     //Delete post
     const queryPost = "DELETE FROM posts WHERE postId = ?"
-    const post = await db.query(queryPost, [postId])
+    await db.query(queryPost, [postId])
     
     res.send("Post succesfully deleted");
   }
@@ -137,3 +166,15 @@ export const deletePost = async (req, res) => {
     res.status(500).send(DATABASE_ERROR_MESSAGE);
   }
 };
+
+async function getAccountIdbyPostId(res, postId){
+  try{
+    const query = "SELECT accountId FROM posts WHERE postId = ?"
+
+    const [accountId] = await db.query(query, [postId])
+    return accountId
+  }
+  catch(error){
+    return res.status(500).send(DATABASE_ERROR_MESSAGE);
+  }
+}

@@ -10,15 +10,18 @@
 	let addPost = {
         title: "",
         content: "",
-        accountId: 1
+        accountId: localStorage.getItem("userId")
     }
 
     async function addPostRequest(){
+        console.log("addPostRequest")
 
         try{
             const response = await fetch("http://localhost:8080/api/posts/createPost", 
             {
                 method: "POST",
+                mode: "cors",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -72,6 +75,30 @@
 </dialog>
 
 <style>
+	#postTitleInModalContainer{
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    #postContentInModalContainer{
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+    }
+
+    #sumbitPostContainer{
+        margin-top: 0.5rem;
+        /* text-align: left; */
+    }
+    
+
+    #addPostContainer{
+        display: flex;
+        flex-direction: column;
+    }
+
 	dialog {
 		max-width: 32em;
 		border-radius: 0.2em;

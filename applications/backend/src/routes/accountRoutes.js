@@ -1,18 +1,19 @@
 import express from 'express';
 import * as accountController from '../controllers/accountController.js';
+import { authenticateAccessToken } from "../services/auth.js";
 
 const router = express.Router();
 
-router.get('/', accountController.getAllAccount)
+router.get('/:id', authenticateAccessToken, accountController.getAccount)
 
-router.get('/:id', accountController.getAccount)
+router.post('/register', accountController.register)
 
-router.post('/signUp', accountController.createAccount)
+router.post('/login', accountController.login)
 
-router.post('/signIn', accountController.createAccount)
+router.post('/logout', authenticateAccessToken, accountController.logout)
 
-router.patch('/updateAccount', accountController.updateAccount)
+router.patch('/updateAccount/:id', authenticateAccessToken, accountController.updateAccount)
 
-router.delete('/deleteAccount/:id', accountController.deleteAccount)
+router.delete('/deleteAccount/:id', authenticateAccessToken, accountController.deleteAccount)
 
 export default router;

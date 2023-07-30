@@ -13,13 +13,14 @@
 		try{
 			const response = await fetch(`http://localhost:8080/api/accounts/deleteAccount/${accountId}`, 
 			{
-				method: "DELETE"
+				method: "DELETE",
+				mode: "cors",
+                credentials:"include"
 			})
 
 			if (response.ok) {
-				navigate("/", {
-					replace: false
-				});
+				localStorage.clear();
+       			window.location.href = '/login'; // Redirect to the login page after logout
 			}
 
 		}
@@ -41,7 +42,7 @@
 		<div id="deletePostModal">
             <form action="">
                 <div>
-                    <p>Are you sure you want to delete your account?</p>
+                    <p>Are you sure you want to delete your account? <br> You are going to be logged out.</p>
                 </div>
                 <div id="deletePostButtonModal">
                     <button type="submit" on:click={deleteAccountRequest}>

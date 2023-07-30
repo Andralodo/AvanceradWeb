@@ -28,7 +28,14 @@ export const getAllCommentsByPostId = async (req, res) => {
   const postId = req.params.postId
     
   try{
-    const query = "SELECT * FROM comments WHERE postId = ?"
+    const query = 
+    `SELECT 
+      c.commentId AS commentId, 
+      c.postId AS postId, 
+      c.comment AS comment, 
+      a.accountId AS accountId, 
+      a.username AS username 
+    FROM comments c INNER JOIN accounts a on a.accountId = c.accountId WHERE postId = ?`
     const [comments] = await db.query(query, [postId])
   
     res.status(200).json(comments);
@@ -83,6 +90,11 @@ export const createComment = async (req, res) => {
 export const updateComment = async (req, res) => {
   const commentData = req.body;
 
+  //Check if the user is updating his account
+  if(req.user.id != commentData.accountId){
+    return res.status(401).json({ message: 'Wrong user' });
+  }
+
   const errorMessages = validateComment(commentData)
 
   if(errorMessages.length > 0){
@@ -106,16 +118,34 @@ export const updateComment = async (req, res) => {
 export const deleteComment = async (req, res) => {
   const commentId = req.params.commentId
 
-  console.log(commentId)
+  //Get accountId of the comment
+  const result = await getAccountIdbyCommentId(res, commentId)
+
+  //Check if the user is updating his account 
+  if(req.user.id != result[0].accountId){
+    return res.status(401).json({ message: 'Wrong user' });
+  }
 
   try{
     const query = "DELETE FROM comments WHERE commentId = ?"
 
     const [comment] = await db.query(query, [commentId])
   
-    res.json(comment);
+    res.status(200).json(comment);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    return res.status(500).send(DATABASE_ERROR_MESSAGE);
   }
 };
+
+async function getAccountIdbyCommentId(res, commentId){
+  try{
+    const query = "SELECT accountId FROM comments WHERE commentId = ?"
+
+    const [accountId] = await db.query(query, [commentId])
+    return accountId
+  }
+  catch(error){
+    return res.status(500).send(DATABASE_ERROR_MESSAGE);
+  }
+}

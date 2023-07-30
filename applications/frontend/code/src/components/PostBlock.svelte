@@ -1,13 +1,11 @@
 <script>
-    export let author
-    export let title
-    export let content
+    export let post
 </script>
 
 <button id="postBlock" on:click>
-    <p>Posted by: {author}</p>
-    <h3>{title}</h3>
-    <p>{content}</p>
+    <p>Posted by: {post.username}</p>
+    <h3>{post.title}</h3>
+    <p>{post.content}</p>
 </button>
 
 <style>

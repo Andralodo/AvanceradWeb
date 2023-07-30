@@ -14,18 +14,18 @@
 		try{
 			const response = await fetch(`http://localhost:8080/api/posts/deletePost/${postId}`, 
 			{
-				method: "DELETE"
+				method: "DELETE",
+				mode: "cors",
+                credentials:"include"
 			})
 
 			if (response.ok) {
-				navigate("/", {
-					replace: false
-				});
+       			window.location.href = '/';
 			}
 
 		}
 		catch(error){
-			console.log("deletePostt error: ", error);
+			console.log("deleteAccount error: ", error);
 		}
 	}
 </script>
@@ -41,7 +41,7 @@
 		<hr />
 		<div id="deletePostModal">
 			<div>
-				<p>Are you sure you want to delete this post?</p>
+				<p>Are you sure you want to delete this post?<br>You are going to be logged out</p>
 			</div>
 			<div id="deletePostButtonModal">
 				<button type="submit" on:click={deletePostRequest}>

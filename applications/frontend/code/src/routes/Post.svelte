@@ -10,26 +10,26 @@
     let showEditPostModal = false;
     let showDeletePostModal = false;
 
+    let userId = localStorage.getItem("userId");
+	let username = localStorage.getItem("username");
+	let isLoggedIn = false;
+
+	if(userId != null && username != null){
+		isLoggedIn = true;
+	}
+
     const postId = parseInt(new URL(document.location.href).pathname.split('/')[2]);
 
     let post = []
-    let accounts = []
     let comments = []
 
     onMount(async () =>{
         post = await getPost();
-        accounts = await getAccounts();
         comments = await getComments()
     })
 
     const getPost = async () => {
         const response = await fetch(`http://localhost:8080/api/posts/${postId}`);
-        const data = await response.json();
-        return data
-    };
-
-    const getAccounts = async () => {
-        const response = await fetch("http://localhost:8080/api/accounts");
         const data = await response.json();
         return data
     };
@@ -42,43 +42,47 @@
 </script>
 
 <div id="mainContainer">
-    <div id="buttonContainer">
-        <button on:click={() => (showEditPostModal = true)}>
-            Edit
-        </button>
-        <button on:click={() => (showDeletePostModal = true)}>
-            Delete
-        </button>
-    </div>
-    <div id="postContainer">
-        {#await getPost() then post}
+    {#await getPost() then post}
+        {#if isLoggedIn}
+            {#if userId == post[0].accountId}
+                <div id="buttonContainer">
+                    <button on:click={() => (showEditPostModal = true)}>
+                        Edit
+                    </button>
+                    <button on:click={() => (showDeletePostModal = true)}>
+                        Delete
+                    </button>
+                </div>
+            {/if}
+        {/if}
+        <div id="postContainer">
             <h1>{post[0].title}</h1>
-            {#await getAccounts() then accounts}
-                <p>Posted by: {accounts.find(account => post[0].accountId === account.accountId).username}</p>
-            {/await}
+            <p>Posted by: {post[0].username}</p>
             <p>{post[0].content}</p>
-        {/await}
-    </div>
+        </div>
+    {/await}
 
     <div id="commentHeadingContainer">
         <h2>Comments</h2>
-        <button on:click={() => (showAddCommentModal = true)}>
-            Add Comment
-        </button>
+        {#if isLoggedIn}
+            <button on:click={() => (showAddCommentModal = true)}>
+                Add Comment
+            </button>
+        {/if}
     </div>
     <div id="commentContainer">
         {#await getComments() then comments}
-            {#each comments as comment}
-                {#await getAccounts() then accounts}
+            {#if comments.length > 0 }
+                {#each comments as comment}
                     <div id="comment">
                         <CommentBlock 
-                            id={comment.commentId} 
-                            author={accounts.find(account => comment.accountId === account.accountId).username}
-                            comment={comment.comment}
+                            comment = {comment}
                         />
                     </div>
-                {/await}
-            {/each}
+                {/each}
+            {:else}
+            <p>No comments</p>
+            {/if}
         {/await}
     </div>
 
