@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import db from "../db.js";
 import { 
   generateAccessAndIdTokens, 
-  revokeAccessToken
+  revokeToken
 } from "../services/auth.js";
 
 const DATABASE_ERROR_MESSAGE ="Internal Server Error"
@@ -44,7 +44,7 @@ function validateAccount(accountData){
   return validationErrors
 }
 
-const findAccountByUsername = async (username) => {
+const findAccountByUsername = async (res, username) => {
   // function to find a user by their username in the database
   try{
     const query = "SELECT * FROM accounts WHERE username = ?"
@@ -54,11 +54,11 @@ const findAccountByUsername = async (username) => {
     return account
   }
   catch(error){
-    return DATABASE_ERROR_MESSAGE;
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});;
   }
 };
 
-const createAccount = async (username, password) => {
+const createAccount = async (res, username, password) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   try{
     const query = "INSERT INTO accounts (username, password) VALUES (?, ?)"
@@ -74,15 +74,37 @@ const createAccount = async (username, password) => {
     return account
   }
   catch(error){
-    return DATABASE_ERROR_MESSAGE;
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
-export const getAccount = async (req, res) => {
+export const fetchCurrentUser = async (req, res) => {
+  const accountId = req.idToken.sub
+  
+  //Check if the user is authorized to fetch this data
+  if(req.userId != accountId){
+    return res.status(401).json({ message: 'Wrong user' });
+  }
+
+  try{
+    const query = "SELECT * FROM accounts WHERE accountId = ?"
+  
+    const [account] = await db.query(query, [accountId])
+
+    console.log("account: ", account[0])
+  
+    res.status(200).json({userId: account[0].accountId, username: account[0].username});
+  }
+  catch(error){
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
+  }
+};
+
+export const getAccountById = async (req, res) => {
   const accountId = req.params.id
   
   //Check if the user is updating his account
-  if(req.user.id != accountId){
+  if(req.userId != accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
@@ -94,124 +116,133 @@ export const getAccount = async (req, res) => {
     res.status(200).json({accountId: account[0].accountId, username: account[0].username});
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
 export const register = async (req, res) => {
   const accountData = req.body;
 
-  const errorMessages = validateAccount(accountData)
+  const validationErrors = validateAccount(accountData)
 
-  if(errorMessages.length > 0){
-      res.status(400).send(errorMessages)
-      return;
+  if(validationErrors.length > 0){
+      return res.status(400).json({errors: validationErrors})
   }
 
-  let existingUser = await findAccountByUsername(accountData.username)
+  let existingUser = await findAccountByUsername(res, accountData.username)
 
   if (existingUser.length != 0 && existingUser[0].username == accountData.username) {
-    res.status(409).send('Username already exists');
-    return;
+    return res.status(409).json({errors: ['Username already exists']});
   }
 
-  let newAccount = await createAccount(accountData.username, accountData.password)
+  let newAccount = await createAccount(res, accountData.username, accountData.password)
 
-  if (newAccount == DATABASE_ERROR_MESSAGE){
-    res.status(400).send(DATABASE_ERROR_MESSAGE)
-  }
-  else{
-    res.status(201).json(newAccount)
-  }
+  res.status(201).json({success: "Succesfully registered."})
 };
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
   // Check if the user exists
-  const account = await findAccountByUsername(username);
+  const account = await findAccountByUsername(res, username);
 
-  if(account == DATABASE_ERROR_MESSAGE){
-    res.status(400).send(DATABASE_ERROR_MESSAGE);
-    return;
-  }
-  else if(account.length == 0 || await bcrypt.compare(account[0].password, password)) {
-    res.status(401).send('Invalid username or password');
-    return;
+  if(account.length == 0 || await bcrypt.compare(account[0].password, password)) {
+    return res.status(401).json({errors: ['Invalid username or password']});
   }
 
-  const accessToken = await generateAccessAndIdTokens(account[0])
+  const {accessToken, idToken} = await generateAccessAndIdTokens(account[0])
 
   res.cookie('accessToken', accessToken, {
     httpOnly: true, // Cookie cannot be accessed by client-side JavaScript
     secure: false, // Send the cookie only over HTTPS
     sameSite: 'lax', // Restrict cookie to same-site requests
-  }).status(200).json({userId: account[0].accountId, username: account[0].username })
+  })
+
+  res.cookie('idToken', idToken, {
+    httpOnly: true, // Cookie cannot be accessed by client-side JavaScript
+    secure: false, // Send the cookie only over HTTPS
+    sameSite: 'lax', // Restrict cookie to same-site requests
+  })
+  
+  res.status(200).json({message: "Succesfully loged in."})
 };
 
 export const logout = async (req, res) => {
-  const token = req.cookies.accessToken;
+  const accessToken = req.cookies.accessToken;
+  const idToken = req.cookies.idToken;
 
   // Perform token revocation here, invalidate the user's access token
-  await revokeAccessToken(token)
+  await revokeToken(accessToken)
   // Clear the accessToken cookie on the frontend
   res.clearCookie('accessToken');
 
+  // Perform token revocation here, invalidate the user's id token
+  await revokeToken(idToken)
+  // Clear the idToken cookie on the frontend
+  res.clearCookie('idToken');
+
   // Send a response indicating successful logout
-  res.status(200).json({ message: 'Logout successful' });
+  res.status(200).json({ message: 'Succesfully loged out.' });
 };
 
 export const updateAccount = async (req, res) => {
   const accountId = req.params.id
-  const {username, password} = req.body;
+  const accountData = req.body;
 
   //Check if the user is updating his account
-  if(req.user.id != accountId){
+  if(req.userId != accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
-  const errorMessages = validateAccount({accountId, username, password})
+  const validationErrors = validateAccount(accountData)
 
-  if(errorMessages.length > 0){
-      res.status(400).send(errorMessages)
-      return;
+  if(validationErrors.length > 0){
+      return res.status(400).send({errors: validationErrors})
   }
 
-  let existingUser = await findAccountByUsername(username)
+  let existingUser = await findAccountByUsername(res, accountData.username)
 
-  if (existingUser.length != 0 && existingUser[0].username == username) {
-
-    if(existingUser[0].accountId != accountId)
-    return res.status(409).json({message: 'Username is in use'});
+  //Check if username is in use already
+  if (existingUser.length != 0 && existingUser[0].username == accountData.username) {
+    //check if the username is used by another account.
+    if(existingUser[0].accountId != accountId){
+      return res.status(409).json({errors: ['Username is in use']});
+    }
   }
   
   try{
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(accountData.password, 10);
 
     const query = "UPDATE accounts SET username = ?, password = ? WHERE accountId = ?"
-    const values = [username, hashedPassword, accountId]
+    const values = [accountData.username, hashedPassword, accountId]
   
     const account = await db.query(query, values)
   
     res.status(200).json(account);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
 export const deleteAccount = async (req, res) => {
   const accountId = req.params.id
-  const token = req.cookies.accessToken;
+  const accessToken = req.cookies.accessToken;
+  const idToken = req.cookies.idToken;
 
   //Check if the user is removing his account
-  if(req.user.id != accountId){
+  if(req.userId != accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
   // Perform token revocation here, invalidate the user's access token
-  await revokeAccessToken(token)
+  await revokeToken(accessToken)
   // Clear the accessToken cookie on the frontend
   res.clearCookie('accessToken');
+
+  // Perform token revocation here, invalidate the user's id token
+  await revokeToken(idToken)
+  // Clear the idToken cookie on the frontend
+  res.clearCookie('idToken');
     
   try{
       //1. delete all comments by user.
@@ -239,10 +270,10 @@ export const deleteAccount = async (req, res) => {
       const query = "DELETE FROM accounts WHERE accountId = ?"
       await db.query(query, [accountId])
   
-      return res.json({message: "Account Deleted"});
+      return res.json({message: "Succesfully deleted account."});
   }
   catch(error){
       console.error('Error revoking token:', error);
-      return "Internal server error";
+      return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };

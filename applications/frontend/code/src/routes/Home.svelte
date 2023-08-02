@@ -5,19 +5,33 @@
     import AddPostModal from "../components/AddPostModal.svelte";
     let showAddPostModal = false;
 
-    let userId = localStorage.getItem("userId");
-	let username = localStorage.getItem("username");
-	let isLoggedIn = false;
-
-	if(userId != null && username != null){
-		isLoggedIn = true;
-	}
-
-    let posts;
+    let userId;
+    let username;
+    let isLoggedIn = false;
+    
     onMount(async () =>{
-        posts = await getPosts();
-        // accounts = await getAccounts();
+        //Check if cookies include tokens then fetch user
+            await fetchCurrentUser();
     })
+
+    const fetchCurrentUser = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
+                method: 'GET',
+                mode: "cors",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                username = data.username
+                userId = data.userId
+                isLoggedIn = true;
+            } 
+        } catch (error) {
+            console.error('Erro fetching user:', error);
+        }
+    };
 
     const getPosts = async () => {
         const response = await fetch("http://localhost:8080/api/posts");
@@ -49,7 +63,7 @@
             {/each}
         {/await}
     </div>
-    <AddPostModal bind:showAddPostModal/>
+    <AddPostModal bind:showAddPostModal userId={userId}/>
 </div>
 
 

@@ -9,11 +9,28 @@ import {
 export async function generateAccessAndIdTokens(account) {
 
   console.log("AccountID", account.accountId)
-    const accessToken = jwt.sign({ id: account.accountId, timestamp: Date.now() + 1000 }, JWT_ACCESS_TOKEN_SECRET, { expiresIn: JWT_EXPIRATION_TIME });
-    return accessToken
+    const accessToken = jwt.sign(
+      { 
+        sub: account.accountId, 
+        timestamp: Date.now() + 1000 
+      }, 
+      JWT_ACCESS_TOKEN_SECRET, 
+      { expiresIn: JWT_EXPIRATION_TIME }
+    );
+
+    const idToken = jwt.sign(
+      { 
+        sub: account.accountId, 
+        timestamp: Date.now() + 1000,
+        username: account.username 
+      }, 
+      JWT_ID_TOKEN_SECRET, 
+      { expiresIn: JWT_EXPIRATION_TIME }
+    );
+    return {accessToken, idToken}
 }
 
-export async function authenticateAccessToken(req, res, next) {
+export async function verifyAccessToken(req, res, next) {
     const token = req.cookies.accessToken;
   
     if (!token) {
@@ -33,7 +50,7 @@ export async function authenticateAccessToken(req, res, next) {
           return res.status(403).json({ message: 'Invalid access token' });
         }
   
-        req.user = user;
+        req.userId = user.sub;
         console.log("User: ", user)
         next();
       });
@@ -43,7 +60,27 @@ export async function authenticateAccessToken(req, res, next) {
     }
   }
 
-export async function revokeAccessToken(token){
+// Middleware to decode ID token from the request header
+export const decodeIdToken = async (req, res, next) => {
+  const idToken = req.cookies.idToken;
+
+  if (!idToken) {
+    return res.status(401).json({ message: 'No ID token provided' });
+  }
+
+  jwt.verify(idToken, JWT_ID_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid ID token' });
+    }
+
+    // If the ID token is valid, add the decoded data to the request object
+    req.idToken = decoded;
+
+    next();
+  });
+};
+
+export async function revokeToken(token){
     try{
       const query = "INSERT INTO revoked_tokens (token) VALUES (?)"
   

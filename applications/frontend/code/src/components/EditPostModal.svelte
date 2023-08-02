@@ -1,13 +1,16 @@
 <script>
 	export let showEditPostModal; // boolean
 	export let post
+    export let userId
 
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showEditPostModal) dialog.showModal();
 
+    let errors;
+
 	let updatePost = {
-        accountId: localStorage.getItem("userId"),
+        accountId: userId,
         title : post.title,
         content: post.content
     }
@@ -24,11 +27,19 @@
                 },
                 body: JSON.stringify(updatePost),
             })
-            switch (response.status) {
-                case 200:
-				dialog.close()
+
+            if (response.ok) {
                 window.location.reload()
             }
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					errors = data.errors;
+					console.log(errors);
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
         }
         catch(error){
             console.log("updatePost error: ", error);
@@ -43,9 +54,15 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		<slot name="header" />
 		<hr />
 		<div id="addPostContainer">
+            {#if errors}
+                <ul class="error-message">
+                    {#each errors as error}
+                        <li>{error}</li>
+                    {/each}
+                </ul>
+            {/if}
             <form on:submit|preventDefault={updatePostRequest}>
                 <div id="postTitleInModalContainer">
                     <label for="titleInput">Title</label>
