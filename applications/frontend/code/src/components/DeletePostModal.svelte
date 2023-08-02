@@ -2,8 +2,9 @@
     import { navigate } from "svelte-routing";
 
 	export let showDeletePostModal; // boolean
-
 	export let postId
+
+	let errors;
 
 	let dialog; // HTMLDialogElement
 
@@ -22,7 +23,15 @@
 			if (response.ok) {
        			window.location.href = '/';
 			}
-
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					errors = data.errors;
+					console.log(errors);
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
 		}
 		catch(error){
 			console.log("deleteAccount error: ", error);
@@ -37,11 +46,17 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		<slot name="header" />
 		<hr />
 		<div id="deletePostModal">
+			{#if errors}
+				<ul class="error-message">
+					{#each errors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			{/if}
 			<div>
-				<p>Are you sure you want to delete this post?<br>You are going to be logged out</p>
+				<p>Are you sure you want to delete this post?</p>
 			</div>
 			<div id="deletePostButtonModal">
 				<button type="submit" on:click={deletePostRequest}>
@@ -89,6 +104,11 @@
 		to {
 			opacity: 1;
 		}
+	}
+
+	#deletePostModal{
+        display: flex;
+        flex-direction: column;
 	}
 	/* button {
 		display: block;

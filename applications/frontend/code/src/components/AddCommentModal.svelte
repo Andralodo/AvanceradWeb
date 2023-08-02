@@ -1,18 +1,23 @@
 <script>
 	export let showAddCommentModal; // boolean
 	export let postId;
+	export let userId;
 
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showAddCommentModal) dialog.showModal();
 
 	let addComment = {
-        accountId: localStorage.getItem("userId"),
+        accountId: userId,
         postId : postId,
         comment: ""
     }
+	console.log("userId", userId)
+
+	let errors;	
 
     async function addCommentRequest(){
+		console.log("AddCommentRequest")
         try{
             const response = await fetch("http://localhost:8080/api/comments/createComment", 
             {
@@ -24,10 +29,18 @@
                 },
                 body: JSON.stringify(addComment),
             })
-            switch (response.status) {
-                case 200:
+            if (response.ok) {
                 window.location.reload()
             }
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					errors = data.errors;
+					console.log(errors);
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
         }
         catch(error){
             console.log("addComment error: ", error);
@@ -42,24 +55,24 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		<slot name="header" />
 		<hr />
 		<div id="addCommentModal">
-			<form on:submit|preventDefault={addCommentRequest}>
-				<div id="commentModal">
-					<label for="contentInput">Comment</label>
-					<textarea name="comment" cols="30" rows="10" bind:value={addComment.comment}></textarea>
-					<input name="accountId" type="hidden" value="1">
-					<input name="postId" type="hidden" value={addComment.postId}>
-				</div>
-				<div id="submitCommentModal">
-					<button type="submit">Post</button>
-				</div>
-			</form>
+			{#if errors}
+				<ul class="error-message">
+					{#each errors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			{/if}
+			<div id="commentModal">
+				<label for="contentInput">Comment</label>
+				<textarea name="comment" cols="30" rows="10" bind:value={addComment.comment}></textarea>
+			</div>
+			<div id="submitCommentModal">
+				<button on:click={addCommentRequest} type="submit">Post</button>
+			</div>
 		</div>
 		<hr />
-		<!-- svelte-ignore a11y-autofocus -->
-		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 	</div>
 </dialog>
 

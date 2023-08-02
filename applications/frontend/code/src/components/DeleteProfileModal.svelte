@@ -4,6 +4,8 @@
 	export let showDeleteProfileModal; // boolean
 	export let accountId
 
+	let errors;
+
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showDeleteProfileModal) dialog.showModal();
@@ -19,10 +21,17 @@
 			})
 
 			if (response.ok) {
-				localStorage.clear();
        			window.location.href = '/login'; // Redirect to the login page after logout
 			}
-
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					errors = data.errors;
+					console.log(errors);
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
 		}
 		catch(error){
 			console.log("deleteAccount error: ", error);
@@ -37,23 +46,29 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		<slot name="header" />
 		<hr />
-		<div id="deletePostModal">
-            <form action="">
-                <div>
-                    <p>Are you sure you want to delete your account? <br> You are going to be logged out.</p>
-                </div>
-                <div id="deletePostButtonModal">
-                    <button type="submit" on:click={deleteAccountRequest}>
+		<div id="container">
+			{#if errors}
+				<ul class="error-message">
+					{#each errors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			{/if}
+			<div id="deletePostModal">
+				<div>
+					<p>Are you sure you want to delete your account? <br> You are going to be logged out.</p>
+				</div>
+				<div id="deletePostButtonModal">
+					<button type="submit" on:click={deleteAccountRequest}>
 						Delete
 					</button>
-                </div>
-            </form>
-        </div>
-		<hr />
+				</div>
+			</div>
+		</div>
 		<!-- svelte-ignore a11y-autofocus -->
 		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
+		<hr />
 	</div>
 </dialog>
 
@@ -91,6 +106,11 @@
 		to {
 			opacity: 1;
 		}
+	}
+
+	#container{
+		display: flex;
+        flex-direction: column;
 	}
 	/* button {
 		display: block;

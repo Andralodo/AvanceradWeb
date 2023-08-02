@@ -1,6 +1,6 @@
 import db from "../db.js";
 
-const DATABASE_ERROR_MESSAGE ="Internal Server Error"
+const DATABASE_ERROR_MESSAGE = ["Internal Server Error"]
 
 function validateComment(commentData){
   const minCommentLength = 3
@@ -56,23 +56,20 @@ export const getComment = async (req, res) => {
     res.status(200).json(comment);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
 export const createComment = async (req, res) => {
   const commentData = req.body;
 
-  console.log(commentData)
+  const validationErrors = validateComment(commentData)
 
-  const errorMessages = validateComment(commentData)
-
-  console.log(errorMessages)
-
-  if(errorMessages.length > 0){
-      res.status(400).send(errorMessages)
-      return;
+  if(validationErrors.length > 0){
+      return res.status(400).json({errors: validationErrors})
   }
+
+  console.log(commentData)
 
   try{
     const query = "INSERT INTO comments (accountId, postId, comment) VALUES (?, ?, ?)"
@@ -83,35 +80,35 @@ export const createComment = async (req, res) => {
     res.status(200).json(comment);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
 export const updateComment = async (req, res) => {
   const commentData = req.body;
+  const commentId = req.params.commentId;
 
   //Check if the user is updating his account
-  if(req.user.id != commentData.accountId){
+  if(req.userId != commentData.accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
-  const errorMessages = validateComment(commentData)
+  const validationErrors = validateComment(commentData)
 
-  if(errorMessages.length > 0){
-      res.status(400).send(errorMessages)
-      return;
+  if(validationErrors.length > 0){
+      return res.status(400).json({errors: validationErrors})
   }
   
   try{
     const query = "UPDATE comments SET comment = ? WHERE commentId = ?"
-    const values = [commentData.comment, commentData.commentId]
+    const values = [commentData.comment, commentId]
   
     const [comment] = await db.query(query, values)
   
-    res.status(200).json(comment);
+    res.status(200).json({message: "Comment succesfully edited"});
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -122,7 +119,7 @@ export const deleteComment = async (req, res) => {
   const result = await getAccountIdbyCommentId(res, commentId)
 
   //Check if the user is updating his account 
-  if(req.user.id != result[0].accountId){
+  if(req.userId != result[0].accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
@@ -134,7 +131,7 @@ export const deleteComment = async (req, res) => {
     res.status(200).json(comment);
   }
   catch(error){
-    return res.status(500).send(DATABASE_ERROR_MESSAGE);
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -146,6 +143,6 @@ async function getAccountIdbyCommentId(res, commentId){
     return accountId
   }
   catch(error){
-    return res.status(500).send(DATABASE_ERROR_MESSAGE);
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 }

@@ -7,23 +7,38 @@
     let showEditProfileModal = false
     let showDeleteProfileModal = false
 
-    const accountId = localStorage.getItem("userId")
-    let account;
+    let userId;
+    let username;
+    let isLoggedIn = false;
 
-    let userId = localStorage.getItem("userId");
-	let username = localStorage.getItem("username");
-	let isLoggedIn = false;
-
-	if(userId != null && username != null){
-		isLoggedIn = true;
-	}
- 
     onMount(async () =>{
-        account = await getAccount();
+        await fetchCurrentUser();
     })
 
+    const fetchCurrentUser = async () => {
+        try {
+        const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
+            method: 'GET',
+            mode: "cors",
+            credentials: "include",
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            username = data.username
+            userId = data.userId
+            isLoggedIn = true;
+        } else {
+            // message = 'Logout failed';
+        }
+        } catch (error) {
+        console.error('Erro fetching user:', error);
+        }
+    };
+
+    let account;
     const getAccount = async () => {
-        const response = await fetch(`http://localhost:8080/api/accounts/${accountId}`, {
+        const response = await fetch(`http://localhost:8080/api/accounts/${userId}`, {
             method: "GET",
             mode: "cors",
             credentials: "include"

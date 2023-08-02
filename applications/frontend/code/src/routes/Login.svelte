@@ -1,10 +1,13 @@
 <script>
-    import { navigate } from "svelte-routing";
 
     let account = {
         username: "",
         password: ""
     }
+
+    let registerErrors;
+    let loginErrors;
+    let successMessage;
 
     let showLoginForm = true
 
@@ -20,10 +23,18 @@
             })
 
             if (response.ok){
-                navigate("/", {
-					replace: false
-				});
+                const data = await response.json();
+                successMessage = data.success;
+                showLoginForm = true
             }
+            else {
+				const data = await response.json();
+				if (data.errors) {
+					registerErrors = data.errors;
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
         }
         catch(error){
             console.log("signUp error: ", error);
@@ -38,46 +49,44 @@
                 mode: "cors",
                 credentials: "include",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Credentials": "true",
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(account),
             })
 
             if (response.ok){
-                const data = await response.json();
-                localStorage.setItem("userId", data.userId);
-                localStorage.setItem("username", data.username);
-
                 window.location.href = '/';
-
             }
+            else {
+				const data = await response.json();
+				if (data.errors) {
+					loginErrors = data.errors;
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
         }
         catch(error){
             console.log("signUp error: ", error);
         }
     }
-// -----------------------------------------------------------------------------------------------------------------------
-//                   GOOGLE AUTHENTICATION (SCRAPPED IN FAVOR OF PASSWORD GRANT CREDENTIAL IMPLEMENTATION)
-// -----------------------------------------------------------------------------------------------------------------------
-    // async function handleGoogleLogin() {
-    //     const authUrl = await initiateGoogleOAuth();
-    //     if (authUrl) {
-    //         console.log(authUrl)
-    //         window.location.href = authUrl;
-    //     } 
-    //     else {
-    //         // Handle error
-    //     }
-    // }
-// -----------------------------------------------------------------------------------------------------------------------
-//                   GOOGLE AUTHENTICATION (SCRAPPED IN FAVOR OF PASSWORD GRANT CREDENTIAL IMPLEMENTATION)
-// -----------------------------------------------------------------------------------------------------------------------
 </script>
 
 <div id="mainContainer">
+    {#if successMessage}
+        <ul class="success-message">
+            <li>{successMessage}</li>
+        </ul>
+    {/if}
     {#if showLoginForm == true}
         <h2>Login</h2>
+        {#if loginErrors}
+            <ul class="error-message">
+                {#each loginErrors as error}
+                    <li>{error}</li>
+                {/each}
+            </ul>
+        {/if}
         <form on:submit|preventDefault={loginRequest}>
             <div id="usernameContainer">
                 <label for="usernameInput">Username</label>
@@ -97,6 +106,13 @@
 
     {:else}
         <h2>Register</h2>
+        {#if registerErrors}
+            <ul class="error-message">
+                {#each registerErrors as error}
+                    <li>{error}</li>
+                {/each}
+            </ul>
+        {/if}
         <form on:submit|preventDefault={registerRequest}>
             <div id="usernameContainer">
                 <label for="usernameInput">Username</label>

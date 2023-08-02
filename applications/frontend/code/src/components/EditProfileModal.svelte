@@ -1,7 +1,8 @@
 <script>
 	export let showEditProfileModal; // boolean
-
 	export let account
+
+	let errors;
 
 	let dialog; // HTMLDialogElement
 
@@ -25,8 +26,16 @@
 				body: JSON.stringify(accountBody)
 			})
 			if (response.ok){
-				localStorage.setItem("username", accountBody.username)
 				window.location.reload()
+			}
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					errors = data.errors;
+					console.log(errors);
+				} else {
+					console.log("Unknown error:", data);
+				}
 			}
 		}
 		catch(error){
@@ -42,9 +51,15 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		<slot name="header" />
 		<hr />
 		<div id="UpdateAccountContainer">
+			{#if errors}
+				<ul class="error-message">
+					{#each errors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			{/if}
 			<form on:submit|preventDefault={updateAccountRequest}>
 				<div id="postUsernameInModalContainer">
 					<label for="titleInput">Username</label>

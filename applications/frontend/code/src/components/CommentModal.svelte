@@ -1,29 +1,43 @@
 <script>
-	import { Router, Link, Route, navigate } from "svelte-routing";
+    import { onMount } from "svelte";
 	export let showCommentModal; // boolean
 
 	let dialog; // HTMLDialogElement
 
 	export let comment
 
-	let commentBody = {
-			commentId: comment.commentId,
-			comment: comment.comment,
-			accountId: comment.accountId
-		}
-
-	let showEdit = false
-	let showDelete = false
-
-	let userId = localStorage.getItem("userId");
-	let username = localStorage.getItem("username");
+	let userId;
+	let username;
 	let isLoggedIn = false;
 
-	if(userId != null && username != null){
-		isLoggedIn = true;
-	}
+	let updateErrors;
+	let deleteErrors;
 
-	$: if (dialog && showCommentModal) dialog.showModal();
+	let commentData = {comment: comment.comment, accountId: comment.accountId}
+
+	onMount(async () =>{
+		await fetchCurrentUser();
+	})
+
+	const fetchCurrentUser = async () => {
+		try {
+			const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
+				method: 'GET',
+				mode: "cors",
+				credentials: "include",
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				username = data.username
+				userId = data.userId
+				isLoggedIn = true;
+			}
+		} 
+		catch (error) {
+			console.error('Erro fetching user:', error);
+		}
+	};
 
 	async function deleteCommentRequest(){
 		try{
@@ -35,8 +49,15 @@
 			})
 			if (response.ok) {
 				showDelete = false
-				dialog.close()
-				window.location.reload()
+                window.location.reload()
+            }
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					deleteErrors = data.errors;
+				} else {
+					console.log("Unknown error:", data);
+				}
 			}
 		}
 		catch(error){
@@ -54,19 +75,30 @@
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(commentBody)
+				body: JSON.stringify(commentData)
 			})
-			switch (response.status) {
-				case 200:
+			if(response.ok) {
 				showEdit = false
-				dialog.close()
 				window.location.reload()
+			}
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					updateErrors = data.errors;
+				} else {
+					console.log("Unknown error:", data);
+				}
 			}
 		}
 		catch(error){
 			console.log("updateComment error: ", error);
 		}
 	}
+
+	$: if (dialog && showCommentModal) dialog.showModal();
+
+	let showEdit = false
+	let showDelete = false
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -77,14 +109,20 @@
 >
 	<div on:click|stopPropagation>
 		{#if showEdit == true}
+			{#if updateErrors}
+				<ul class="error-message">
+					{#each updateErrors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			{/if}
 			<div id="editCommentContainer">
-				<slot name="header" />
 				<hr />
 				<div id="EditComment">
 					<form on:submit|preventDefault={updateCommentRequest}>    
 						<div id="commentModal">
 							<label for="contentInput">Comment</label>
-							<textarea name="contentInput" bind:value="{comment.comment}" cols="30" rows="10"></textarea>
+							<textarea name="contentInput" bind:value="{commentData.comment}" cols="30" rows="10"></textarea>
 						</div>
 						<div id="EdditCommentButton">
 							<button type="submit">Save</button>
@@ -95,13 +133,17 @@
 					</form>
 				</div>
 				<hr />
-				<!-- svelte-ignore a11y-autofocus -->
-				<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 			</div>
 		{:else if showDelete == true}
+		<hr />
 			<div id="deleteCommentContainer">
-				<slot name="header" />
-				<hr />
+				{#if deleteErrors}
+					<ul class="error-message">
+						{#each deleteErrors as error}
+							<li>{error}</li>
+						{/each}
+					</ul>
+				{/if}
 				<p> Are you sure you want to delete this comment?</p>
 				<form>
 					<button type="button" on:click={deleteCommentRequest}>
@@ -111,13 +153,10 @@
 						No
 					</button>
 				</form>
-				<hr />
-				<!-- svelte-ignore a11y-autofocus -->
-				<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 			</div>
+			<hr />
 		{:else}
 			<div id="commentContainer">
-				<slot name="header" />
 				<hr />
 				<p>Posted by: {comment.username}</p>
 				<p>{comment.comment}</p>
@@ -134,8 +173,6 @@
 					</div>
 					{/if}
 				{/if}
-				<!-- svelte-ignore a11y-autofocus -->
-				<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 			</div>
 		{/if}
 	</div>
@@ -193,6 +230,11 @@
         display: flex;
         flex-direction: column;
         text-align: left;
+    }
+
+	#deleteCommentContainer{
+        display: flex;
+        flex-direction: column;
     }
 
 </style>

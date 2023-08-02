@@ -2,20 +2,18 @@
 	import { navigate } from "svelte-routing";
 
 	export let showAddPostModal; // boolean
+    export let userId;
+
+    let title;
+    let content;
+
+    let errors;
 
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showAddPostModal) dialog.showModal();
 
-	let addPost = {
-        title: "",
-        content: "",
-        accountId: localStorage.getItem("userId")
-    }
-
     async function addPostRequest(){
-        console.log("addPostRequest")
-
         try{
             const response = await fetch("http://localhost:8080/api/posts/createPost", 
             {
@@ -25,17 +23,24 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(addPost),
+                body: JSON.stringify({ title: title, content: content, accountId: userId }),
             })
 
-            let createdPostId = await response.json()
-            switch (response.status) {
-                case 200:
+            if (response.ok) {
+                let createdPostId = await response.json()
                 navigate(`/post/${createdPostId}`, {
                     replace: false,
                 });
-                break;
             }
+			else {
+				const data = await response.json();
+				if (data.errors) {
+					errors = data.errors;
+					console.log(errors);
+				} else {
+					console.log("Unknown error:", data);
+				}
+			}
         }
         catch(error){
             console.log("addPost error: ", error);
@@ -50,18 +55,24 @@
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
-		<slot name="header" />
 		<hr />
 		<div id="addPostContainer">
+            {#if errors}
+                <ul class="error-message">
+                    {#each errors as error}
+                        <li>{error}</li>
+                    {/each}
+                </ul>
+            {/if}
             <form on:submit|preventDefault={addPostRequest}>
                 <div id="postTitleInModalContainer">
                     <label for="titleInput">Title</label>
-                    <input name="titleInput" type="text" bind:value={addPost.title}>
+                    <input name="titleInput" type="text" bind:value={title}>
                 </div>
             
                 <div id="postContentInModalContainer">
                     <label for="contentInput">Content</label>
-                    <textarea name="contentInput" cols="30" rows="10" bind:value={addPost.content}></textarea>
+                    <textarea name="contentInput" cols="30" rows="10" bind:value={content}></textarea>
                 </div>
                 <div id="sumbitPostContainer">
                     <button type="submit">Post</button>
@@ -69,8 +80,6 @@
             </form>
         </div>
 		<hr />
-		<!-- svelte-ignore a11y-autofocus -->
-		<!-- <button autofocus on:click={() => dialog.close()}>close modal</button> -->
 	</div>
 </dialog>
 

@@ -52,10 +52,10 @@ export const getAllPosts = async (req, res) => {
     FROM posts p INNER JOIN accounts a on a.accountId = p.accountId`
     const [posts] = await db.query(query)
   
-    res.status(200).send(posts);
+    res.status(200).json(posts);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -74,25 +74,20 @@ export const getPost = async (req, res) => {
   
     const [post] = await db.query(query, [postId])
   
-    res.status(200).send(post);
+    res.status(200).json(post);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
 export const createPost = async (req, res) => {
     const postData = req.body;
 
-    console.log("CreatePost")
+    const validationErrors = validatePost(postData)
 
-    const errorMessages = validatePost(postData)
-
-    console.log(errorMessages)
-
-    if(errorMessages.length > 0){
-        res.status(400).send(errorMessages)
-        return;
+    if(validationErrors.length > 0){
+        return res.status(400).json({errors: validationErrors})
     }
 
     try{
@@ -104,7 +99,7 @@ export const createPost = async (req, res) => {
       res.status(200).json(post.insertId);
     }
     catch(error){
-      res.status(500).send(DATABASE_ERROR_MESSAGE);
+      res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
     }
 };
 
@@ -112,17 +107,15 @@ export const updatePost = async (req, res) => {
   const postId = req.params.id
   const postData = req.body;
 
-  console.log(req.user.id, " --- ", postData.accountId)
-
   //Check if the user is updating his account
-  if(req.user.id != postData.accountId){
+  if(req.userId != postData.accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
-  const errorMessages = validatePost(postData)
+  const validationErrors = validatePost(postData)
 
-  if(errorMessages.length > 0){
-      res.status(400).send(json(errorMessages))
+  if(validationErrors.length > 0){
+      res.status(400).json({errors: validationErrors})
       return;
   }
   
@@ -135,18 +128,20 @@ export const updatePost = async (req, res) => {
     res.status(200).send(post);
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
 export const deletePost = async (req, res) => {
   const postId = req.params.id
 
+  return res.status(401).json({ errors: ['Delete test'] });
+
   //Get accountId of the comment
   const result = await getAccountIdbyPostId(res, postId)
 
   //Check if the user is updating his account
-  if(req.user.id != result[0].accountId){
+  if(req.userId != result[0].accountId){
     return res.status(401).json({ message: 'Wrong user' });
   }
 
@@ -163,7 +158,7 @@ export const deletePost = async (req, res) => {
     res.send("Post succesfully deleted");
   }
   catch(error){
-    res.status(500).send(DATABASE_ERROR_MESSAGE);
+    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -175,6 +170,6 @@ async function getAccountIdbyPostId(res, postId){
     return accountId
   }
   catch(error){
-    return res.status(500).send(DATABASE_ERROR_MESSAGE);
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 }

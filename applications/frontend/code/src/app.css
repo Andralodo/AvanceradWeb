@@ -72,6 +72,20 @@ button:focus-visible {
   padding:2rem
 }
 
+.error-message {
+  background-color: #d44c4c;
+  border: 1px solid #fcc2c3;
+  float: left;
+  padding: 20px 30px;
+}
+
+.success-message {
+  background-color: #96d33f;
+  border: 1px solid #fcc2c3;
+  float: left;
+  padding: 20px 30px;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
