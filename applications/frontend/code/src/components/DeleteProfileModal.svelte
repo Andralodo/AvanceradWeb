@@ -6,43 +6,40 @@
 
 	let errors;
 
+	async function deleteAccountRequest(){
+		const response = await fetch(`http://localhost:8080/api/accounts/deleteAccount/${accountId}`, 
+		{
+			method: "DELETE",
+			mode: "cors",
+			credentials:"include"
+		})
+
+		if (response.ok) {
+			window.location.href = '/login'; // Redirect to the login page after logout
+		}
+		else {
+			const data = await response.json();
+			if (data.errors) {
+				errors = data.errors;
+			}
+		}
+	}
+
+	//Change to base values when closing modal
+		async function onModalClose(){
+		errors = null
+		showDeleteProfileModal = false
+	}
+
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showDeleteProfileModal) dialog.showModal();
-
-	async function deleteAccountRequest(){
-
-		try{
-			const response = await fetch(`http://localhost:8080/api/accounts/deleteAccount/${accountId}`, 
-			{
-				method: "DELETE",
-				mode: "cors",
-                credentials:"include"
-			})
-
-			if (response.ok) {
-       			window.location.href = '/login'; // Redirect to the login page after logout
-			}
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					errors = data.errors;
-					console.log(errors);
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
-		}
-		catch(error){
-			console.log("deleteAccount error: ", error);
-		}
-	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showDeleteProfileModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>

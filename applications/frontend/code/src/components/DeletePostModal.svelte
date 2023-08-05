@@ -6,43 +6,41 @@
 
 	let errors;
 
+	async function deletePostRequest(){
+		const response = await fetch(`http://localhost:8080/api/posts/deletePost/${postId}`, 
+		{
+			method: "DELETE",
+			mode: "cors",
+			credentials:"include"
+		})
+
+		if (response.ok) {
+			window.location.href = '/';
+		}
+		else {
+			const data = await response.json();
+			if (data.errors) {
+				errors = data.errors;
+			}
+		}
+	}
+
+	//Change to base values when closing modal
+	async function onModalClose(){
+		errors = null
+		showDeletePostModal = false
+	}
+
+	
 	let dialog; // HTMLDialogElement
 
 	$: if (dialog && showDeletePostModal) dialog.showModal();
-
-	async function deletePostRequest(){
-
-		try{
-			const response = await fetch(`http://localhost:8080/api/posts/deletePost/${postId}`, 
-			{
-				method: "DELETE",
-				mode: "cors",
-                credentials:"include"
-			})
-
-			if (response.ok) {
-       			window.location.href = '/';
-			}
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					errors = data.errors;
-					console.log(errors);
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
-		}
-		catch(error){
-			console.log("deleteAccount error: ", error);
-		}
-	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showDeletePostModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>

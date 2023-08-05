@@ -1,7 +1,9 @@
 <script>
-    export let comment
-
     import CommentModal from './CommentModal.svelte';
+
+    export let comment
+    export let currentUser
+
     let showCommentModal = false;
     
 </script>
@@ -13,7 +15,8 @@
 
 <CommentModal 
     bind:showCommentModal 
-    comment={comment}>
+    comment={comment}
+    currentUser={currentUser}>
 </CommentModal>
 
 <style>

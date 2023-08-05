@@ -3,10 +3,6 @@
 	export let post
     export let userId
 
-	let dialog; // HTMLDialogElement
-
-	$: if (dialog && showEditPostModal) dialog.showModal();
-
     let errors;
 
 	let updatePost = {
@@ -16,41 +12,45 @@
     }
 
     async function updatePostRequest(){
-        try{
-            const response = await fetch(`http://localhost:8080/api/posts/updatePost/${post.postId}`, 
-            {
-                method: "PATCH",
-                mode: "cors",
-                credentials:"include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(updatePost),
-            })
+        const response = await fetch(`http://localhost:8080/api/posts/updatePost/${post.postId}`, 
+        {
+            method: "PATCH",
+            mode: "cors",
+            credentials:"include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updatePost),
+        })
 
-            if (response.ok) {
-                window.location.reload()
-            }
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					errors = data.errors;
-					console.log(errors);
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
+        if (response.ok) {
+            window.location.reload()
         }
-        catch(error){
-            console.log("updatePost error: ", error);
+        else {
+            const data = await response.json();
+            if (data.errors) {
+                errors = data.errors;
+            }
         }
     }
+
+    //Change to base values when closing modal
+	async function onModalClose(){
+		errors = null
+		showEditPostModal = false
+        updatePost.title = post.title,
+        updatePost.content = post.content
+	}
+
+	let dialog; // HTMLDialogElement
+
+    $: if (dialog && showEditPostModal) dialog.showModal();
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showEditPostModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>

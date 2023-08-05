@@ -83,20 +83,18 @@ export const fetchCurrentUser = async (req, res) => {
   
   //Check if the user is authorized to fetch this data
   if(req.userId != accountId){
-    return res.status(401).json({ message: 'Wrong user' });
+    return res.status(401).json({ errors: ['Wrong user'] });
   }
 
   try{
     const query = "SELECT * FROM accounts WHERE accountId = ?"
   
     const [account] = await db.query(query, [accountId])
-
-    console.log("account: ", account[0])
   
-    res.status(200).json({userId: account[0].accountId, username: account[0].username});
+    return res.status(200).json({userId: account[0].accountId, username: account[0].username});
   }
   catch(error){
-    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -105,7 +103,7 @@ export const getAccountById = async (req, res) => {
   
   //Check if the user is updating his account
   if(req.userId != accountId){
-    return res.status(401).json({ message: 'Wrong user' });
+    return res.status(401).json({ errors: ['Wrong user'] });
   }
 
   try{
@@ -113,10 +111,10 @@ export const getAccountById = async (req, res) => {
   
     const [account] = await db.query(query, [accountId])
   
-    res.status(200).json({accountId: account[0].accountId, username: account[0].username});
+    return res.status(200).json({accountId: account[0].accountId, username: account[0].username});
   }
   catch(error){
-    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -135,17 +133,25 @@ export const register = async (req, res) => {
     return res.status(409).json({errors: ['Username already exists']});
   }
 
-  let newAccount = await createAccount(res, accountData.username, accountData.password)
+  await createAccount(res, accountData.username, accountData.password)
 
-  res.status(201).json({success: "Succesfully registered."})
+  return res.status(201).json({message: ["Succesfully registered."]})
 };
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
-  // Check if the user exists
-  const account = await findAccountByUsername(res, username);
 
-  if(account.length == 0 || await bcrypt.compare(account[0].password, password)) {
+
+  if (!username || !password){
+    return res.status(401).json({errors: ['Invalid username or password']});
+  }
+
+  // Find user by username
+  const account = await findAccountByUsername(res, username);
+  const passwordMatch = await bcrypt.compare(password, account[0].password);
+
+  // Check if the user exist and password matches
+  if(account.length == 0 || !passwordMatch) {
     return res.status(401).json({errors: ['Invalid username or password']});
   }
 
@@ -163,7 +169,7 @@ export const login = async (req, res) => {
     sameSite: 'lax', // Restrict cookie to same-site requests
   })
   
-  res.status(200).json({message: "Succesfully loged in."})
+  return res.status(200).json({message: ["Succesfully logged in"]})
 };
 
 export const logout = async (req, res) => {
@@ -181,7 +187,7 @@ export const logout = async (req, res) => {
   res.clearCookie('idToken');
 
   // Send a response indicating successful logout
-  res.status(200).json({ message: 'Succesfully loged out.' });
+  return res.status(200).json({ message: ['Succesfully logged out'] });
 };
 
 export const updateAccount = async (req, res) => {
@@ -190,7 +196,7 @@ export const updateAccount = async (req, res) => {
 
   //Check if the user is updating his account
   if(req.userId != accountId){
-    return res.status(401).json({ message: 'Wrong user' });
+    return res.status(401).json({ errors: ['Wrong user'] });
   }
 
   const validationErrors = validateAccount(accountData)
@@ -217,10 +223,10 @@ export const updateAccount = async (req, res) => {
   
     const account = await db.query(query, values)
   
-    res.status(200).json(account);
+    return res.status(200).json({message: ["Successfully updated account"]});
   }
   catch(error){
-    res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
+    return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };
 
@@ -231,7 +237,7 @@ export const deleteAccount = async (req, res) => {
 
   //Check if the user is removing his account
   if(req.userId != accountId){
-    return res.status(401).json({ message: 'Wrong user' });
+    return res.status(401).json({ errors: ['Wrong user'] });
   }
 
   // Perform token revocation here, invalidate the user's access token
@@ -270,10 +276,9 @@ export const deleteAccount = async (req, res) => {
       const query = "DELETE FROM accounts WHERE accountId = ?"
       await db.query(query, [accountId])
   
-      return res.json({message: "Succesfully deleted account."});
+      return res.json({message: ["Succesfully deleted account."]});
   }
   catch(error){
-      console.error('Error revoking token:', error);
       return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   }
 };

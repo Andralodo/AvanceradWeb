@@ -28,11 +28,11 @@ CREATE TABLE revoked_tokens (
   token VARCHAR(255) PRIMARY KEY
 );
 
-INSERT INTO accounts (username, password) VALUES ('Andralodo', '123456');
-INSERT INTO accounts (username, password) VALUES ('Kareth', '123456');
+INSERT INTO accounts (username, password) VALUES ('Andralodo', '$2b$10$HZZBx4LVV07FMTzwSeAuKOFiBwGWvMt9eVFGUOHSo501pucMpNSGa');
+INSERT INTO accounts (username, password) VALUES ('Kareth', '$2b$10$HZZBx4LVV07FMTzwSeAuKOFiBwGWvMt9eVFGUOHSo501pucMpNSGa');
 
-INSERT INTO posts (accountId, title, content) VALUES (1, 'Första Posten', 'Får se om det här funkar');
-INSERT INTO posts (accountId, title, content) VALUES (2, 'Andra Posten', 'Fixade profile page');
+INSERT INTO posts (accountId, title, content) VALUES (1, 'Hello!', 'Hello guys my first post here');
+INSERT INTO posts (accountId, title, content) VALUES (2, 'Better then reddit', 'My new favorite site, much better than reddit!');
 
-INSERT INTO comments (postId, accountId, comment) VALUES (1, 2, 'aa men det tror jag det ska göra');
-INSERT INTO comments (postId, accountId, comment) VALUES (2, 1, 'Ey schysst sida fan');
+INSERT INTO comments (postId, accountId, comment) VALUES (1, 2, 'Hi Welcome!');
+INSERT INTO comments (postId, accountId, comment) VALUES (2, 1, 'Yeah i know right?');

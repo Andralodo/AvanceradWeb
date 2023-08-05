@@ -3,55 +3,52 @@
 	export let postId;
 	export let userId;
 
-	let dialog; // HTMLDialogElement
-
-	$: if (dialog && showAddCommentModal) dialog.showModal();
+	let errors;	
 
 	let addComment = {
         accountId: userId,
         postId : postId,
-        comment: ""
+        comment: null
     }
-	console.log("userId", userId)
-
-	let errors;	
 
     async function addCommentRequest(){
-		console.log("AddCommentRequest")
-        try{
-            const response = await fetch("http://localhost:8080/api/comments/createComment", 
-            {
-                method: "POST",
-				mode: "cors",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(addComment),
-            })
-            if (response.ok) {
-                window.location.reload()
-            }
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					errors = data.errors;
-					console.log(errors);
-				} else {
-					console.log("Unknown error:", data);
-				}
+		const response = await fetch("http://localhost:8080/api/comments/createComment", 
+		{
+			method: "POST",
+			mode: "cors",
+			credentials: "include",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(addComment),
+		})
+		if (response.ok) {
+			window.location.reload()
+		}
+		else {
+			const data = await response.json();
+			if (data.errors) {
+				errors = data.errors;
 			}
-        }
-        catch(error){
-            console.log("addComment error: ", error);
-        }
+		}
     }
+
+	//Change to base values when closing modal
+	async function onModalClose(){
+		errors = null
+		showAddCommentModal = false
+		addComment.comment = null
+	}
+
+	let dialog; // HTMLDialogElement
+
+	$: if (dialog && showAddCommentModal) dialog.showModal();
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showAddCommentModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>

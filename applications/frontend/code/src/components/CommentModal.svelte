@@ -1,110 +1,91 @@
 <script>
-    import { onMount } from "svelte";
 	export let showCommentModal; // boolean
-
-	let dialog; // HTMLDialogElement
-
 	export let comment
-
-	let userId;
-	let username;
-	let isLoggedIn = false;
+	export let currentUser
 
 	let updateErrors;
 	let deleteErrors;
 
+	let showEdit = false
+	let showDelete = false
+
 	let commentData = {comment: comment.comment, accountId: comment.accountId}
 
-	onMount(async () =>{
-		await fetchCurrentUser();
-	})
-
-	const fetchCurrentUser = async () => {
-		try {
-			const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
-				method: 'GET',
-				mode: "cors",
-				credentials: "include",
-			});
-
-			if (response.ok) {
-				const data = await response.json();
-				username = data.username
-				userId = data.userId
-				isLoggedIn = true;
-			}
-		} 
-		catch (error) {
-			console.error('Erro fetching user:', error);
-		}
-	};
-
 	async function deleteCommentRequest(){
-		try{
-			const response = await fetch(`http://localhost:8080/api/comments/deleteComment/${comment.commentId}`, 
-			{
-				method: "DELETE",
-				mode: "cors",
-				credentials:"include"
-			})
-			if (response.ok) {
-				showDelete = false
-                window.location.reload()
-            }
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					deleteErrors = data.errors;
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
+		const response = await fetch(`http://localhost:8080/api/comments/deleteComment/${comment.commentId}`, 
+		{
+			method: "DELETE",
+			mode: "cors",
+			credentials:"include"
+		})
+		if (response.ok) {
+			dialog.close()
+			window.location.reload()
 		}
-		catch(error){
-			console.log("deleteComment error: ", error);
+		else {
+			const data = await response.json();
+			if (data.errors) {
+				deleteErrors = data.errors;
+			}
 		}
 	}
 
 	async function updateCommentRequest(){
-		try{
-			const response = await fetch(`http://localhost:8080/api/comments/updateComment/${comment.commentId}`, 
-			{
-				method: "PATCH",
-				mode: "cors",
-				credentials:"include",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(commentData)
-			})
-			if(response.ok) {
-				showEdit = false
-				window.location.reload()
-			}
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					updateErrors = data.errors;
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
+		const response = await fetch(`http://localhost:8080/api/comments/updateComment/${comment.commentId}`, 
+		{
+			method: "PATCH",
+			mode: "cors",
+			credentials:"include",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(commentData)
+		})
+		if(response.ok) {
+			dialog.close()
+			window.location.reload()
 		}
-		catch(error){
-			console.log("updateComment error: ", error);
+		else {
+			const data = await response.json();
+			if (data.errors) {
+				updateErrors = data.errors;
+			}
 		}
 	}
 
-	$: if (dialog && showCommentModal) dialog.showModal();
+	//change to base values when closing modal
+	async function onModalClose(){
+		showEdit = false
+		showDelete = false
+		updateErrors = null
+		deleteErrors = null
+		showCommentModal = false
 
-	let showEdit = false
-	let showDelete = false
+		commentData.comment = comment.comment
+	}
+
+	//Change to base values when going back from delete
+	async function onBackFromDelete(){
+		showDelete = false
+		deleteErrors = null
+	}
+
+	//Change to base values when going back from edit
+	async function onBackFromEdit(){
+		showEdit = false
+		updateErrors = null
+		commentData.comment = comment.comment
+	}
+
+	let dialog; // HTMLDialogElement
+
+	$: if (dialog && showCommentModal) dialog.showModal();
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showCommentModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
@@ -126,7 +107,7 @@
 						</div>
 						<div id="EdditCommentButton">
 							<button type="submit">Save</button>
-							<button on:click={() => (showEdit = false)}>
+							<button on:click={() => (onBackFromEdit())}>
 								Back to comment
 							</button>
 						</div>
@@ -149,7 +130,7 @@
 					<button type="button" on:click={deleteCommentRequest}>
 						Yes
 					</button>
-					<button on:click={() => (showDelete = false)}>
+					<button on:click={() => (onBackFromDelete())}>
 						No
 					</button>
 				</form>
@@ -161,8 +142,8 @@
 				<p>Posted by: {comment.username}</p>
 				<p>{comment.comment}</p>
 				<hr />
-				{#if isLoggedIn}
-					{#if userId == comment.accountId}
+				{#if currentUser.isLoggedIn}
+					{#if currentUser.userId == comment.accountId}
 					<div>
 						<button on:click={() => (showEdit = true)}>
 							Edit

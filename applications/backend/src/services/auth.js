@@ -6,9 +6,10 @@ import {
     JWT_ID_TOKEN_SECRET
   } from "../config.js";
 
+const DATABASE_ERROR_MESSAGE ="Internal Server Error"
+
 export async function generateAccessAndIdTokens(account) {
 
-  console.log("AccountID", account.accountId)
     const accessToken = jwt.sign(
       { 
         sub: account.accountId, 
@@ -34,7 +35,7 @@ export async function verifyAccessToken(req, res, next) {
     const token = req.cookies.accessToken;
   
     if (!token) {
-      return res.status(401).json({ message: 'No access token provided' });
+      return res.status(401).json({ errors: ['No access token provided'] });
     }
 
     try {
@@ -42,21 +43,20 @@ export async function verifyAccessToken(req, res, next) {
       const [results] = await db.query('SELECT token FROM revoked_tokens WHERE token = ?', [token]);
   
       if (results.length > 0) {
-        return res.status(403).json({ message: 'Access token has been revoked' });
+        return res.status(403).json({ errors: ['Access token has been revoked'] });
       }
   
       jwt.verify(token, JWT_ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {
-          return res.status(403).json({ message: 'Invalid access token' });
+          return res.status(403).json({ errors: ['Invalid access token'] });
         }
   
         req.userId = user.sub;
-        console.log("User: ", user)
         next();
       });
-    } catch (error) {
-      console.error('Error checking revoked token:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    } 
+    catch (error) {
+      return res.status(500).json({ errors: [DATABASE_ERROR_MESSAGE] });
     }
   }
 
@@ -65,19 +65,24 @@ export const decodeIdToken = async (req, res, next) => {
   const idToken = req.cookies.idToken;
 
   if (!idToken) {
-    return res.status(401).json({ message: 'No ID token provided' });
+    return res.status(401).json({ errors: ['No ID token provided'] });
   }
 
-  jwt.verify(idToken, JWT_ID_TOKEN_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid ID token' });
-    }
-
-    // If the ID token is valid, add the decoded data to the request object
-    req.idToken = decoded;
-
-    next();
-  });
+  try{
+    jwt.verify(idToken, JWT_ID_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ errors: ['Invalid ID token'] });
+      }
+  
+      // If the ID token is valid, add the decoded data to the request object
+      req.idToken = decoded;
+  
+      next();
+    });
+  }
+  catch (error) {
+    return res.status(500).json({ errors: [DATABASE_ERROR_MESSAGE] });
+  }
 };
 
 export async function revokeToken(token){
@@ -89,7 +94,6 @@ export async function revokeToken(token){
       return results
     }
     catch(error){
-      console.error('Error revoking token:', error);
-      return "Internal server error";
+      return res.status(500).json({ errors: [DATABASE_ERROR_MESSAGE] });
     }
   }

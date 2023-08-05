@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/getAllPostComments/:postId', commentController.getAllCommentsByPostId)
 
-router.get('/getComment/:commentId', commentController.getComment)
+// router.get('/getComment/:commentId', commentController.getComment)
 
 router.post('/createComment', verifyAccessToken, commentController.createComment)
 

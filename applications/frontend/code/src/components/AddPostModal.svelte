@@ -9,49 +9,48 @@
 
     let errors;
 
-	let dialog; // HTMLDialogElement
-
-	$: if (dialog && showAddPostModal) dialog.showModal();
-
     async function addPostRequest(){
-        try{
-            const response = await fetch("http://localhost:8080/api/posts/createPost", 
-            {
-                method: "POST",
-                mode: "cors",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ title: title, content: content, accountId: userId }),
-            })
+        const response = await fetch("http://localhost:8080/api/posts/createPost", 
+        {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ title: title, content: content, accountId: userId }),
+        })
 
-            if (response.ok) {
-                let createdPostId = await response.json()
-                navigate(`/post/${createdPostId}`, {
-                    replace: false,
-                });
-            }
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					errors = data.errors;
-					console.log(errors);
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
+        if (response.ok) {
+            let createdPostId = await response.json()
+            navigate(`/post/${createdPostId}`, {
+                replace: false,
+            });
         }
-        catch(error){
-            console.log("addPost error: ", error);
+        else {
+            const data = await response.json();
+            if (data.errors) {
+                errors = data.errors;
+            }
         }
     }
+
+    //Change to base values when closing modal
+	async function onModalClose(){
+		errors = null
+		showAddPostModal = false
+		title = null
+        content = null
+	}
+
+	let dialog; // HTMLDialogElement
+    $: if (dialog && showAddPostModal) dialog.showModal();
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showAddPostModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>

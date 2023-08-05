@@ -1,65 +1,67 @@
 <script>
     import CommentBlock from "../components/CommentBlock.svelte";
-    // import { Router, Link, Route, navigate } from "svelte-routing";
-    import { onMount } from "svelte";
-
     import AddCommentModal from '../components/AddCommentModal.svelte';
     import EditPostModal from '../components/EditPostModal.svelte';
     import DeletePostModal from '../components/DeletePostModal.svelte';
+    import { onMount } from "svelte";
+
+    export let currentUser;
+    export let postId
+
     let showAddCommentModal = false;
     let showEditPostModal = false;
     let showDeletePostModal = false;
 
-    let userId;
-    let username;
-    let isLoggedIn = false;
+    let postErrors;
+    let commentErrors;
+
+    let comments;
+    let post;
     
     onMount(async () =>{
-        await fetchCurrentUser();
-        console.log(userId)
+        post = await getPost()
+        comments = await getComments()
     })
-
-    const fetchCurrentUser = async () => {
-        try {
-            const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
-                method: 'GET',
-                mode: "cors",
-                credentials: "include",
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                username = data.username
-                userId = data.userId
-                isLoggedIn = true;
-            } else {
-                // message = 'Logout failed';
-            }
-        } 
-        catch (error) {
-            console.error('Erro fetching user:', error);
-        }
-    };
-
-    const postId = parseInt(new URL(document.location.href).pathname.split('/')[2]);
 
     const getPost = async () => {
         const response = await fetch(`http://localhost:8080/api/posts/${postId}`);
-        const data = await response.json();
-        return data
+        if (response.ok) {
+            const data = await response.json();
+            if(data.length > 0)
+                return data
+            else return
+        } 
+        else{
+            const data = await response.json();
+			if (data.errors) {
+				postErrors = data.errors;
+			}
+        }
     };
 
     const getComments = async () => {
         const response = await fetch(`http://localhost:8080/api/comments/getAllPostComments/${postId}`);
-        const data = await response.json();
-        return data
+        if (response.ok) {
+            const data = await response.json();
+            if(data.length > 0)
+                return data
+            else return
+        } 
+        else{
+            const data = await response.json();
+			if (data.errors) {
+				commentErrors = data.errors
+			}
+        }
     };
 </script>
 
 <div id="mainContainer">
-    {#await getPost() then post}
-        {#if isLoggedIn}
-            {#if userId == post[0].accountId}
+    {#if postErrors}
+        <p>{postErrors[0]}<br>Error loading post :(</p>
+    {:else if post}
+        {#if currentUser.isLoggedIn}
+            {#if currentUser.userId == post[0].accountId}
                 <div id="buttonContainer">
                     <button on:click={() => (showEditPostModal = true)}>
                         Edit
@@ -75,39 +77,42 @@
             <p>Posted by: {post[0].username}</p>
             <p>{post[0].content}</p>
         </div>
-
-        <div id="commentHeadingContainer">
-            <h2>Comments</h2>
-            {#if isLoggedIn}
-                <button on:click={() => (showAddCommentModal = true)}>
-                    Add Comment
-                </button>
-            {/if}
-        </div>
-        <div id="commentContainer">
-            {#await getComments() then comments}
-                {#if comments.length > 0 }
+        {#if commentErrors}
+            <p>{commentErrors[0]}<br>Error loading comments :(</p>
+        {:else}
+            <div id="commentHeadingContainer">
+                <h2>Comments</h2>
+                {#if currentUser.isLoggedIn}
+                    <button on:click={() => (showAddCommentModal = true)}>
+                        Add Comment
+                    </button>
+                {/if}
+            </div>
+            {#if comments}
+                <div id="commentContainer">
                     {#each comments as comment}
                         <div id="comment">
                             <CommentBlock 
                                 comment = {comment}
+                                currentUser = {currentUser}
                             />
                         </div>
                     {/each}
-                {:else}
+                </div>
+            {:else}
                 <p>No comments</p>
-                {/if}
-            {/await}
-        </div>
-
-        {#if userId != null}
-            <AddCommentModal bind:showAddCommentModal postId={postId} userId={userId}/>
-
-            <EditPostModal bind:showEditPostModal post={post[0]} userId={userId}/>
-
+            {/if}
+        {/if}
+        {#if currentUser.userId != null}
+            <AddCommentModal bind:showAddCommentModal postId={postId} userId={currentUser.userId}/>
+    
+            <EditPostModal bind:showEditPostModal post={post[0]} userId={currentUser.userId}/>
+    
             <DeletePostModal bind:showDeletePostModal postId={postId}/>
         {/if}
-    {/await}
+    {:else}
+        <p>No such post exists</p>
+    {/if}
 </div>
 
 <style>

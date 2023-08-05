@@ -4,50 +4,50 @@
 
 	let errors;
 
-	let dialog; // HTMLDialogElement
-
-	$: if (dialog && showEditProfileModal) dialog.showModal();
-
 	let accountBody = {
 			username: account.username,
 			password: account.password
 		}
 
 	async function updateAccountRequest(){
-		try{
-			const response = await fetch(`http://localhost:8080/api/accounts/updateAccount/${account.accountId}`, 
-			{
-				method: "PATCH",
-				mode: "cors",
-				credentials: "include",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(accountBody)
-			})
-			if (response.ok){
-				window.location.reload()
-			}
-			else {
-				const data = await response.json();
-				if (data.errors) {
-					errors = data.errors;
-					console.log(errors);
-				} else {
-					console.log("Unknown error:", data);
-				}
-			}
+		const response = await fetch(`http://localhost:8080/api/accounts/updateAccount/${account.accountId}`, 
+		{
+			method: "PATCH",
+			mode: "cors",
+			credentials: "include",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(accountBody)
+		})
+		if (response.ok){
+			window.location.reload()
 		}
-		catch(error){
-			console.log("updateAccount error: ", error);
+		else {
+			const data = await response.json();
+			if (data.errors) {
+				errors = data.errors;
+			}
 		}
 	}
+
+	//Change to base values when closing modal
+	async function onModalClose(){
+		errors = null
+		showEditProfileModal = false
+        accountBody.username = account.username
+		accountBody.password = account.password
+	}
+
+	let dialog; // HTMLDialogElement
+
+	$: if (dialog && showEditProfileModal) dialog.showModal();
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <dialog
 	bind:this={dialog}
-	on:close={() => (showEditProfileModal = false)}
+	on:close={() => (onModalClose())}
 	on:click|self={() => dialog.close()}
 >
 	<div on:click|stopPropagation>
