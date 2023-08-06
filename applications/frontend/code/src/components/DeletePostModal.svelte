@@ -1,5 +1,5 @@
 <script>
-    import { navigate } from "svelte-routing";
+	import { getCsrfToken } from "../csrf";
 
 	export let showDeletePostModal; // boolean
 	export let postId
@@ -7,11 +7,16 @@
 	let errors;
 
 	async function deletePostRequest(){
+		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/posts/deletePost/${postId}`, 
 		{
 			method: "DELETE",
 			mode: "cors",
-			credentials:"include"
+			credentials:"include",
+			headers: {
+                "Content-Type": "application/json",
+                'X-CSRF-Token': csrfToken
+            },
 		})
 
 		if (response.ok) {

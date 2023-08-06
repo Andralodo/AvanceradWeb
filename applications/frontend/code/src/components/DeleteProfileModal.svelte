@@ -1,5 +1,5 @@
 <script>
-    import { navigate } from "svelte-routing";
+	import { getCsrfToken } from "../csrf";
 
 	export let showDeleteProfileModal; // boolean
 	export let accountId
@@ -7,11 +7,16 @@
 	let errors;
 
 	async function deleteAccountRequest(){
+		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/accounts/deleteAccount/${accountId}`, 
 		{
 			method: "DELETE",
 			mode: "cors",
-			credentials:"include"
+			credentials:"include",
+			headers: {
+				"Content-Type": "application/json",
+				'X-CSRF-Token': csrfToken
+			}
 		})
 
 		if (response.ok) {

@@ -176,6 +176,7 @@ export const logout = async (req, res) => {
   const accessToken = req.cookies.accessToken;
   const idToken = req.cookies.idToken;
 
+  // return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
   // Perform token revocation here, invalidate the user's access token
   await revokeToken(accessToken)
   // Clear the accessToken cookie on the frontend

@@ -4,10 +4,14 @@
   import Home from "./routes/Home.svelte";
   import Post from "./routes/Post.svelte";
   import Profile from "./routes/Profile.svelte";
+  import LogoutModal from "./components/LogoutModal.svelte";
   import { onMount } from "svelte";
+  import { getCsrfToken } from "./csrf";
 
   // Used for SSR. A falsy value is ignored by the Router.
   export let url = "";
+
+  let showLogoutModal = false
 
   let userId;
   let username;
@@ -32,21 +36,6 @@
     }
   };
 
-  const logout = async () => {
-    // Send logout request to backend
-    const response = await fetch('http://localhost:8080/api/accounts/logout', {
-      method: 'POST',
-      mode: "cors",
-      credentials: "include",
-    });
-
-    if (response.ok) {
-      window.location.href = '/login'; // Redirect to the login page after logout
-    } else {
-      // message = 'Logout failed';
-    }
-  };
-
 </script>
 
 <main>
@@ -54,10 +43,14 @@
   <Router {url}>
     <nav id="navbar">
       {#if isLoggedIn}
-        <Link to="/">Home</Link>
-        <Link to="profile/{userId}">Profile</Link>
-        <p>{username}</p>
-        <button on:click={logout}>Logout</button>
+        <div>
+          <Link to="/">Home</Link>
+          <Link to="profile/{userId}">Profile</Link>
+        </div>
+        <div class="navUser">
+          <p class="navUsername">Logged in as: <b>{username}</b></p>
+          <button on:click={() => (showLogoutModal = true)}>Logout</button>
+        </div>
       {:else}
         <Link to="/">Home</Link>
         <Link to="login">Login</Link>
@@ -76,4 +69,5 @@
         </Route>
     </div>
   </Router>
+  <LogoutModal bind:showLogoutModal/>
 </main>

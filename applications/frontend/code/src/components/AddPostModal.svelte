@@ -1,5 +1,6 @@
 <script>
 	import { navigate } from "svelte-routing";
+    import { getCsrfToken } from "../csrf";
 
 	export let showAddPostModal; // boolean
     export let userId;
@@ -10,13 +11,15 @@
     let errors;
 
     async function addPostRequest(){
+        const csrfToken = await getCsrfToken()
         const response = await fetch("http://localhost:8080/api/posts/createPost", 
         {
             method: "POST",
             mode: "cors",
             credentials: "include",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify({ title: title, content: content, accountId: userId }),
         })

@@ -37,13 +37,15 @@
         {#if currentUser.isLoggedIn}
             <div id="profileHeadingContainer">
                 <h2>Profile</h2>
-                <button on:click={() => (showEditProfileModal = true)}>Edit Profile</button>
-                <button on:click={() => (showDeleteProfileModal = true)}>Delete Account</button>
+                <div>
+                    <button on:click={() => (showEditProfileModal = true)}>Edit Profile</button>
+                    <button on:click={() => (showDeleteProfileModal = true)}>Delete Account</button>
+                </div>
             </div>
             {#await getAccount() then account}
+                <h3>Account details</h3>
                 <div>
-                    <h3>Username</h3>
-                    <p>{account.username}</p>   
+                    <p><b>Username: </b> {account.username}</p>   
                 </div>
             {/await}
 
@@ -62,6 +64,7 @@
     #mainContainer{
         display: flex;
         flex-direction: column;
+        width: 1280px
     }
 
     #profileHeadingContainer{

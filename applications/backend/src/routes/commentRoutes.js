@@ -6,8 +6,6 @@ const router = express.Router();
 
 router.get('/getAllPostComments/:postId', commentController.getAllCommentsByPostId)
 
-// router.get('/getComment/:commentId', commentController.getComment)
-
 router.post('/createComment', verifyAccessToken, commentController.createComment)
 
 router.patch('/updateComment/:commentId', verifyAccessToken, commentController.updateComment)

@@ -1,4 +1,5 @@
 <script>
+    import { getCsrfToken } from '../csrf.js';
 
     let account = {
         username: null,
@@ -12,11 +13,16 @@
     let showLoginForm = true
 
     async function registerRequest(){
+
+        const csrfToken = await getCsrfToken()
         const response = await fetch("http://localhost:8080/api/accounts/register", 
         {
             method: "POST",
+            mode: "cors",
+            credentials: 'include', 
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify(account),
         })
@@ -36,13 +42,15 @@
     }
 
     async function loginRequest(){
+        const csrfToken = await getCsrfToken()
         const response = await fetch("http://localhost:8080/api/accounts/login", 
         {
             method: "POST",
             mode: "cors",
             credentials: "include",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify(account),
         })
@@ -79,67 +87,69 @@
 </script>
 
 <div id="mainContainer">
-    {#if showLoginForm == true}
-        <h2>Login</h2>
-        {#if successMessage}
-            <ul class="success-message">
-                <li>{successMessage}</li>
-            </ul>
-        {/if}
-        {#if loginErrors}
-            <ul class="error-message">
-                {#each loginErrors as error}
-                    <li>{error}</li>
-                {/each}
-            </ul>
-        {/if}
-        <form on:submit|preventDefault={loginRequest}>
-            <div id="usernameContainer">
-                <label for="usernameInput">Username</label>
-                <input name="usernameInput" type="text" bind:value={account.username}>
-            </div>
-        
-            <div id="passwordContainer">
-                <label for="passwordInput">Password</label>
-                <input name="passwordInput" type="password" bind:value={account.password}>
-            </div>
-            <div id="buttonContainer">
-                <button type="submit">Login</button>
-            </div>
-            <button class="btn info" on:click={()=>(switchToRegister())}>Dont have an account register here</button>
-        </form>
-        <!-- <button on:click={handleGoogleLogin}>Login with Google</button> -->
+    <div id="loginContainer">
+        {#if showLoginForm == true}
+            <h2>Login</h2>
+            {#if successMessage}
+                <ul class="success-message">
+                    <li>{successMessage}</li>
+                </ul>
+            {/if}
+            {#if loginErrors}
+                <ul class="error-message">
+                    {#each loginErrors as error}
+                        <li>{error}</li>
+                    {/each}
+                </ul>
+            {/if}
+            <form on:submit|preventDefault={loginRequest}>
+                <div id="usernameContainer">
+                    <label for="usernameInput">Username</label>
+                    <input name="usernameInput" type="text" bind:value={account.username}>
+                </div>
+            
+                <div id="passwordContainer">
+                    <label for="passwordInput">Password</label>
+                    <input name="passwordInput" type="password" bind:value={account.password}>
+                </div>
+                <div id="buttonContainer">
+                    <button type="submit">Login</button>
+                </div>
+                <button class="btn info" on:click={()=>(switchToRegister())}>Dont have an account register here</button>
+            </form>
+            <!-- <button on:click={handleGoogleLogin}>Login with Google</button> -->
 
-    {:else}
-        <h2>Register</h2>
-        {#if successMessage}
-            <ul class="success-message">
-                <li>{successMessage}</li>
-            </ul>
+        {:else}
+            <h2>Register</h2>
+            {#if successMessage}
+                <ul class="success-message">
+                    <li>{successMessage}</li>
+                </ul>
+            {/if}
+            {#if registerErrors}
+                <ul class="error-message">
+                    {#each registerErrors as error}
+                        <li>{error}</li>
+                    {/each}
+                </ul>
+            {/if}
+            <form on:submit|preventDefault={registerRequest}>
+                <div id="usernameContainer">
+                    <label for="usernameInput">Username</label>
+                    <input name="usernameInput" type="text" bind:value={account.username}>
+                </div>
+            
+                <div id="passwordContainer">
+                    <label for="passwordInput">Password</label>
+                    <input name="passwordInput" type="password" bind:value={account.password}>
+                </div>
+                <div id="buttonContainer">
+                    <button type="submit">Register</button>
+                </div>
+                <button class="btn info" on:click={()=>(switchToLogin())}>Already have an account login here</button>
+            </form>
         {/if}
-        {#if registerErrors}
-            <ul class="error-message">
-                {#each registerErrors as error}
-                    <li>{error}</li>
-                {/each}
-            </ul>
-        {/if}
-        <form on:submit|preventDefault={registerRequest}>
-            <div id="usernameContainer">
-                <label for="usernameInput">Username</label>
-                <input name="usernameInput" type="text" bind:value={account.username}>
-            </div>
-        
-            <div id="passwordContainer">
-                <label for="passwordInput">Password</label>
-                <input name="passwordInput" type="password" bind:value={account.password}>
-            </div>
-            <div id="buttonContainer">
-                <button type="submit">Register</button>
-            </div>
-            <button class="btn info" on:click={()=>(switchToLogin())}>Already have an account login here</button>
-        </form>
-    {/if}
+    </div>    
 </div>
 
 
@@ -163,10 +173,18 @@
         margin-top:2rem;
         text-align: left;
     }
+
+    #loginContainer{
+        display: flex;
+        flex-direction: column;
+        max-width: 480px;
+    }
     
     #mainContainer{
         display: flex;
         flex-direction: column;
+        align-items: center;
+        width: 1280px;
     }
 
     .btn {

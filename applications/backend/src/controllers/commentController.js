@@ -44,21 +44,6 @@ export const getAllCommentsByPostId = async (req, res) => {
   }
 };
 
-// export const getComment = async (req, res) => {
-//   const commentId = req.params.commentId
-
-//   try{
-//     const query = "SELECT * FROM comments WHERE commentId = ?"
-  
-//     const [comment] = await db.query(query, [commentId])
-  
-//     return res.status(200).json(comment);
-//   }
-//   catch(error){
-//     return res.status(500).json({errors: [DATABASE_ERROR_MESSAGE]});
-//   }
-// };
-
 export const createComment = async (req, res) => {
   const commentData = req.body;
 

@@ -1,4 +1,5 @@
 <script>
+	import { getCsrfToken } from "../csrf";
 	export let showCommentModal; // boolean
 	export let comment
 	export let currentUser
@@ -12,11 +13,16 @@
 	let commentData = {comment: comment.comment, accountId: comment.accountId}
 
 	async function deleteCommentRequest(){
+		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/comments/deleteComment/${comment.commentId}`, 
 		{
 			method: "DELETE",
 			mode: "cors",
-			credentials:"include"
+			credentials:"include",
+			headers: {
+				"Content-Type": "application/json",
+				'X-CSRF-Token': csrfToken
+			}
 		})
 		if (response.ok) {
 			dialog.close()
@@ -31,6 +37,7 @@
 	}
 
 	async function updateCommentRequest(){
+		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/comments/updateComment/${comment.commentId}`, 
 		{
 			method: "PATCH",
@@ -38,6 +45,7 @@
 			credentials:"include",
 			headers: {
 				"Content-Type": "application/json",
+				'X-CSRF-Token': csrfToken
 			},
 			body: JSON.stringify(commentData)
 		})

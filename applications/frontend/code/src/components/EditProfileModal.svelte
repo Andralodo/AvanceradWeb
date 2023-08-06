@@ -1,4 +1,5 @@
 <script>
+	import { getCsrfToken } from "../csrf";
 	export let showEditProfileModal; // boolean
 	export let account
 
@@ -10,6 +11,7 @@
 		}
 
 	async function updateAccountRequest(){
+		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/accounts/updateAccount/${account.accountId}`, 
 		{
 			method: "PATCH",
@@ -17,6 +19,7 @@
 			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
+				'X-CSRF-Token': csrfToken
 			},
 			body: JSON.stringify(accountBody)
 		})

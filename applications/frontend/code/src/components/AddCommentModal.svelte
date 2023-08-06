@@ -1,4 +1,6 @@
 <script>
+	import { getCsrfToken } from "../csrf";
+
 	export let showAddCommentModal; // boolean
 	export let postId;
 	export let userId;
@@ -12,13 +14,15 @@
     }
 
     async function addCommentRequest(){
+		const csrfToken = await getCsrfToken()
 		const response = await fetch("http://localhost:8080/api/comments/createComment", 
 		{
 			method: "POST",
 			mode: "cors",
 			credentials: "include",
 			headers: {
-				"Content-Type": "application/json"
+				"Content-Type": "application/json",
+				'X-CSRF-Token': csrfToken
 			},
 			body: JSON.stringify(addComment),
 		})

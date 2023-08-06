@@ -1,4 +1,6 @@
 <script>
+    import { getCsrfToken } from "../csrf";
+
 	export let showEditPostModal; // boolean
 	export let post
     export let userId
@@ -12,13 +14,16 @@
     }
 
     async function updatePostRequest(){
+        const csrfToken = await getCsrfToken()
+
         const response = await fetch(`http://localhost:8080/api/posts/updatePost/${post.postId}`, 
         {
             method: "PATCH",
             mode: "cors",
             credentials:"include",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRF-Token': csrfToken
             },
             body: JSON.stringify(updatePost),
         })

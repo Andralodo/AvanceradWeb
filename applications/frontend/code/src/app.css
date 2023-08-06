@@ -69,7 +69,11 @@ button:focus-visible {
 }
 
 #navbar{
-  padding:2rem
+  /* padding:2rem, */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .error-message {
@@ -84,6 +88,13 @@ button:focus-visible {
   border: 1px solid #fcc2c3;
   float: left;
   padding: 20px 30px;
+}
+
+.navUsername{
+  display: inline-block;
+}
+.navUser{
+  text-align: right;
 }
 
 @media (prefers-color-scheme: light) {
