@@ -22,10 +22,15 @@
   })
 
   const fetchCurrentUser = async () => {
+    const csrfToken = await getCsrfToken()
     const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
       method: 'GET',
       mode: "cors",
       credentials: "include",
+      headers: {
+                "Content-Type": "application/json",
+                'X-CSRF-Token': csrfToken
+      }
     });
 
     if (response.ok) {
