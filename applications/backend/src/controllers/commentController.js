@@ -1,27 +1,8 @@
 import db from "../db.js";
+import { validateComment } from "../services/validation.js";
 
 const DATABASE_ERROR_MESSAGE = "Internal Server Error"
 
-function validateComment(commentData){
-  const minCommentLength = 3
-  const maxCommentLength = 20
-
-
-  const validationErrors = []
-  if(commentData.comment){
-      if (commentData.comment.length < minCommentLength) {
-          validationErrors.push("The comment needs to be at least " + minCommentLength + " characters.")
-      }
-  
-      if (commentData.comment.length > maxCommentLength) {
-          validationErrors.push("The comment cant contain more than " + maxCommentLength + " characters.")
-      }
-  }
-  else{
-      validationErrors.push("Comment cannot be empty")
-  }
-  return validationErrors
-}
 
 export const getAllCommentsByPostId = async (req, res) => {
   const postId = req.params.postId

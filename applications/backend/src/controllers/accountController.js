@@ -1,48 +1,12 @@
 import bcrypt from 'bcrypt';
 import db from "../db.js";
+import { validateAccount } from '../services/validation.js';
 import { 
   generateAccessAndIdTokens, 
   revokeToken
 } from "../services/auth.js";
 
 const DATABASE_ERROR_MESSAGE ="Internal Server Error"
-
-function validateAccount(accountData){
-  const minUsernameLength = 3
-  const maxUsernameLength = 15
-
-  const minPasswordLength = 5
-  const maxPasswordLength = 20
-
-
-  const validationErrors = []
-  if(accountData.username){
-      if (accountData.username.length < minUsernameLength) {
-          validationErrors.push("The username needs to be at least " + minUsernameLength + " characters.")
-      }
-  
-      if (accountData.username.length > maxUsernameLength) {
-          validationErrors.push("The username cant contain more than " + maxUsernameLength + " characters.")
-      }
-  }
-  else{
-      validationErrors.push("Username cannot be empty")
-  }
-
-  if(accountData.password){
-    if (accountData.password.length < minPasswordLength) {
-        validationErrors.push("The password needs to be at least " + minPasswordLength + " characters.")
-    }
-
-    if (accountData.password.length > maxPasswordLength) {
-        validationErrors.push("The password cant contain more than " + maxPasswordLength + " characters.")
-    }
-  }
-  else{
-    validationErrors.push("Password cannot be empty")
-  }
-  return validationErrors
-}
 
 const findAccountByUsername = async (res, username) => {
   // function to find a user by their username in the database

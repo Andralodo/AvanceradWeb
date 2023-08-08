@@ -1,43 +1,7 @@
 import db from "../db.js";
+import { validatePost } from "../services/validation.js";
 
 const DATABASE_ERROR_MESSAGE = "Internal Server Error"
-
-function validatePost(postData){
-  const minTitleLength = 3
-  const maxTitleLength = 20
-
-  const minContentLength = 5
-  const maxContentLength = 100
-
-
-  const validationErrors = []
-  if(postData.title){
-      if (postData.title.length < minTitleLength) {
-          validationErrors.push("The title needs to be at least " + minTitleLength + " characters.")
-      }
-  
-      if (postData.title.length > maxTitleLength) {
-          validationErrors.push("The title cant contain more than " + maxTitleLength + " characters.")
-      }
-  }
-  else{
-      validationErrors.push("Title cannot be empty")
-  }
-
-  if(postData.content){
-    if (postData.content.length < minContentLength) {
-        validationErrors.push("The content needs to be at least " + minContentLength + " characters.")
-    }
-
-    if (postData.content.length > maxContentLength) {
-        validationErrors.push("The content cant contain more than " + maxContentLength + " characters.")
-    }
-  }
-  else{
-    validationErrors.push("Content cannot be empty")
-  }
-  return validationErrors
-}
 
 export const getAllPosts = async (req, res) => {
 
