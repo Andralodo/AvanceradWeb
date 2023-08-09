@@ -57,6 +57,7 @@
 </script>
 
 <div id="mainContainer">
+    <h2 class="heading">Post</h2>
     {#if postErrors}
         <p>{postErrors[0]}<br>Error loading post :(</p>
     {:else if post}
@@ -156,6 +157,10 @@
         flex-direction: row;
         justify-content: flex-end;
         margin-bottom: 1rem;
+    }
+
+    .heading{
+        text-align: left;
     }
 
 

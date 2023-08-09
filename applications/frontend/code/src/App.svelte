@@ -6,7 +6,6 @@
   import Profile from "./routes/Profile.svelte";
   import LogoutModal from "./components/LogoutModal.svelte";
   import { onMount } from "svelte";
-  import { getCsrfToken } from "./csrf";
 
   // Used for SSR. A falsy value is ignored by the Router.
   export let url = "";
@@ -22,15 +21,10 @@
   })
 
   const fetchCurrentUser = async () => {
-    const csrfToken = await getCsrfToken()
     const response = await fetch('http://localhost:8080/api/accounts/fetchCurrentUser', {
       method: 'GET',
       mode: "cors",
-      credentials: "include",
-      headers: {
-                "Content-Type": "application/json",
-                'X-CSRF-Token': csrfToken
-      }
+      credentials: "include"
     });
 
     if (response.ok) {

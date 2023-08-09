@@ -69,6 +69,14 @@ export const decodeIdToken = async (req, res, next) => {
   }
 
   try{
+
+    // Check if the token has been revoked
+    const [results] = await db.query('SELECT token FROM revoked_tokens WHERE token = ?', [idToken]);
+
+    if (results.length > 0) {
+      return res.status(403).json({ errors: ['Id token has been revoked'] });
+    }
+
     jwt.verify(idToken, JWT_ID_TOKEN_SECRET, (err, decoded) => {
       if (err) {
         return res.status(403).json({ errors: ['Invalid ID token'] });
