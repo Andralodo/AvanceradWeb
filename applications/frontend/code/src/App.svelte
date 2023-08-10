@@ -38,7 +38,7 @@
 </script>
 
 <main>
-  <h1> Forum </h1>
+  <h1> ExpressLane </h1>
   <Router {url}>
     <nav id="navbar">
       {#if isLoggedIn}
