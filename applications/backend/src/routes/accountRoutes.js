@@ -14,7 +14,7 @@ router.post('/login', accountController.login)
 
 router.post('/logout', verifyAccessToken, accountController.logout)
 
-router.patch('/updateAccount/:id', verifyAccessToken, accountController.updateAccount)
+router.put('/updateAccount/:id', verifyAccessToken, accountController.updateAccount)
 
 router.delete('/deleteAccount/:id', verifyAccessToken, accountController.deleteAccount)
 

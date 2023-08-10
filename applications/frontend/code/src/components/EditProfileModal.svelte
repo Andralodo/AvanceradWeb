@@ -14,7 +14,7 @@
 		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/accounts/updateAccount/${account.accountId}`, 
 		{
-			method: "PATCH",
+			method: "PUT",
 			mode: "cors",
 			credentials: "include",
 			headers: {

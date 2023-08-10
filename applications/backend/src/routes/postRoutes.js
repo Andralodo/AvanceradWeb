@@ -10,7 +10,7 @@ router.get('/:id', postController.getPost)
 
 router.post('/createPost', verifyAccessToken, postController.createPost)
 
-router.patch('/updatePost/:id', verifyAccessToken, postController.updatePost)
+router.put('/updatePost/:id', verifyAccessToken, postController.updatePost)
 
 router.delete('/deletePost/:id', verifyAccessToken, postController.deletePost)
 

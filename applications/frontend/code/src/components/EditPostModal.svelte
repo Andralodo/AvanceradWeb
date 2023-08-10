@@ -18,7 +18,7 @@
 
         const response = await fetch(`http://localhost:8080/api/posts/updatePost/${post.postId}`, 
         {
-            method: "PATCH",
+            method: "PUT",
             mode: "cors",
             credentials:"include",
             headers: {

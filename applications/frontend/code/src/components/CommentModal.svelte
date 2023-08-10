@@ -39,7 +39,7 @@
 		const csrfToken = await getCsrfToken()
 		const response = await fetch(`http://localhost:8080/api/comments/updateComment/${comment.commentId}`, 
 		{
-			method: "PATCH",
+			method: "PUT",
 			mode: "cors",
 			credentials:"include",
 			headers: {

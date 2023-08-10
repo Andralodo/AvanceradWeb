@@ -8,7 +8,7 @@ router.get('/getAllPostComments/:postId', commentController.getAllCommentsByPost
 
 router.post('/createComment', verifyAccessToken, commentController.createComment)
 
-router.patch('/updateComment/:commentId', verifyAccessToken, commentController.updateComment)
+router.put('/updateComment/:commentId', verifyAccessToken, commentController.updateComment)
 
 router.delete('/deleteComment/:commentId', verifyAccessToken, commentController.deleteComment)
 
