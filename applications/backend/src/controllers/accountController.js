@@ -112,11 +112,16 @@ export const login = async (req, res) => {
 
   // Find user by username
   const account = await findAccountByUsername(res, username);
-  const passwordMatch = await bcrypt.compare(password, account[0].password);
 
   // Check if the user exist and password matches
-  if(account.length == 0 || !passwordMatch) {
+  if(account.length == 0) {
     return res.status(401).json({errors: ['Invalid username or password']});
+  }
+  else{
+    const passwordMatch = await bcrypt.compare(password, account[0].password);
+    if (!passwordMatch){
+      return res.status(401).json({errors: ['Invalid username or password']});
+    }
   }
 
   const {accessToken, idToken} = await generateAccessAndIdTokens(account[0])
